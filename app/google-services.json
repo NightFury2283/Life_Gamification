@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "461383006220",
+    "project_id": "life-gamification-ab4c3",
+    "storage_bucket": "life-gamification-ab4c3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:461383006220:android:cd17810607f5c5b0a85629",
+        "android_client_info": {
+          "package_name": "com.example.life_gamification"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyxCeOflBFFdtNDXNRtuA3AMCuDEsr8Ns"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
