@@ -1,5 +1,4 @@
-package com.example.life_gamification.googleSign.data.auth
-
+package com.example.life_gamification.data.auth
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider

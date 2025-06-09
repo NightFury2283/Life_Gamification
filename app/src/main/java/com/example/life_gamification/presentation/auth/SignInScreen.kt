@@ -1,4 +1,4 @@
-package com.example.life_gamification.googleSign.presentation.auth
+package com.example.life_gamification.presentation.auth
 
 
 import androidx.compose.foundation.Image

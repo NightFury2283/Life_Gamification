@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.androidx.material3)
 //    implementation(libs.androidx.navigation.compose.jvmstubs)
     implementation(libs.firebase.functions.ktx)
+    implementation(libs.androidx.room.common.jvm)
+    implementation(libs.androidx.room.runtime.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

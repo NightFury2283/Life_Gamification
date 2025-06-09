@@ -3,7 +3,7 @@ package com.example.life_gamification
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.life_gamification.googleSign.presentation.AppNavHost
+import com.example.life_gamification.presentation.AppNavHost
 import com.example.life_gamification.ui.theme.Life_gamificationTheme
 
 class MainActivity : ComponentActivity() {

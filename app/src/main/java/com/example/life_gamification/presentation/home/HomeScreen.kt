@@ -1,4 +1,4 @@
-package com.example.life_gamification.googleSign.presentation.home
+package com.example.life_gamification.presentation.home
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme

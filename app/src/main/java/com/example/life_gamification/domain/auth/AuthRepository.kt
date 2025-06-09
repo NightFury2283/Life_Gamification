@@ -1,4 +1,4 @@
-package com.example.life_gamification.googleSign.domain.auth
+package com.example.life_gamification.domain.auth
 
 interface AuthRepository {
     fun isUserAuthenticated(): Boolean

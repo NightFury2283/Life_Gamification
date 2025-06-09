@@ -1,10 +1,10 @@
-package com.example.life_gamification.googleSign.presentation.auth
+package com.example.life_gamification.presentation.auth
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.life_gamification.googleSign.domain.auth.LoginWithGoogleUseCase
+import com.example.life_gamification.domain.auth.LoginWithGoogleUseCase
 import kotlinx.coroutines.launch
 
 class AuthViewModel(
