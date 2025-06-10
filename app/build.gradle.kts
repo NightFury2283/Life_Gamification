@@ -3,7 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.gms)
-
+    id("org.jetbrains.kotlin.kapt")
 }
 
 android {
@@ -51,6 +51,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation("androidx.compose.material3:material3:1.0.1")
 //    implementation(libs.androidx.navigation.compose.jvmstubs)
     implementation(libs.firebase.functions.ktx)
     implementation(libs.androidx.room.common.jvm)
@@ -74,5 +75,12 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation("androidx.compose.runtime:runtime-livedata:1.6.6")
 
+    //room
+    implementation(libs.androidx.room.runtime.android)
+    implementation(libs.androidx.room.common.jvm)
+    kapt(libs.androidx.room.compiler)
+
 
 }
+
+

@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.example.life_gamification.presentation
 
 import android.content.Context
@@ -11,7 +13,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.life_gamification.presentation.auth.AuthViewModel
 import com.example.life_gamification.presentation.auth.SignInScreen
-import com.example.life_gamification.presentation.home.HomeScreen
 import com.example.life_gamification.data.auth.FirebaseAuthSource
 import com.example.life_gamification.data.auth.AuthRepositoryImpl
 import com.example.life_gamification.data.local.db.AppDatabase
@@ -26,9 +27,22 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+
+
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+
+
 @Composable
 fun AppNavHost(appContext: Context) {
     val navController = rememberNavController()
+
+    // ======= АВТОРИЗАЦИЯ =======
     val gso = remember {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken("461383006220-j22in4hv8iegblm3lfbn3b5rh3o6cs9s.apps.googleusercontent.com")
@@ -36,7 +50,7 @@ fun AppNavHost(appContext: Context) {
             .build()
     }
     val googleSignInClient = remember { GoogleSignIn.getClient(appContext, gso) }
-
+    var userId by remember { mutableStateOf<String?>(null) }
     val viewModel = remember {
         val firebaseAuth = FirebaseAuth.getInstance()
         val firebaseSource = FirebaseAuthSource(firebaseAuth)
@@ -61,9 +75,9 @@ fun AppNavHost(appContext: Context) {
                     name = account.displayName ?: "Без имени",
                     email = account.email
                 )
+                userId = account.id
 
                 val db = AppDatabase.getDatabase(appContext)
-
                 CoroutineScope(Dispatchers.IO).launch {
                     db.userDao().insertUser(user)
                 }
@@ -73,6 +87,7 @@ fun AppNavHost(appContext: Context) {
         }
     }
 
+    // ======= Навигация =======
     LaunchedEffect(loginState) {
         if (loginState?.isSuccess == true) {
             navController.navigate("status") {
@@ -88,7 +103,22 @@ fun AppNavHost(appContext: Context) {
             })
         }
         composable("status") {
-            StatusScreen(navController)
+            if (userId != null) {
+                StatusScreen(
+                    navController = navController,
+                    userId = userId!!
+                )
+            } else {
+                // Заглушка на случай если userId еще не получен
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Loading...", color = Color.White)
+                }
+            }
         }
     }
 }

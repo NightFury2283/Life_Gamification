@@ -5,13 +5,21 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.life_gamification.data.local.dao.UserDao
+import com.example.life_gamification.data.local.dao.UserStatDao
 import com.example.life_gamification.data.local.entity.UserEntity
+import com.example.life_gamification.data.local.entity.UserStatEntity
 
-@Database(entities = [UserEntity::class], version = 1)
+
+@Database(
+    entities = [UserEntity::class, UserStatEntity::class],
+    version = 1
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun userStatDao(): UserStatDao
 
     companion object {
+        @Volatile
         private var INSTANCE: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {

@@ -1,43 +1,45 @@
 package com.example.life_gamification.presentation.status
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.life_gamification.R
 
 @Composable
-fun StatusScreen(navController: NavController) {
+fun StatusScreen(
+    navController: NavController,
+    userId: String,
+    viewModel: StatusViewModel = viewModel(
+        factory = StatusViewModelFactory(
+            context = LocalContext.current,
+            userId = userId
+        )
+    )
+) {
     val expandedStats = remember { mutableStateOf(true) }
     val expandedDailies = remember { mutableStateOf(true) }
     val expandedTasks = remember { mutableStateOf(true) }
 
-    // TODO: Подключить ViewModel и Room для загрузки данных
-    val level = 5
-    val experience = 1200
-    val coins = 999
-    val stats = listOf("Сила" to 10, "Интеллект" to 7, "Выносливость" to 9)
-    val dailies = listOf("Почистить зубы", "Сделать зарядку")
-    val tasks = listOf("Сделать домашку", "Купить продукты")
+    val customStats by viewModel.stats.collectAsState()
+    var showAddDialog by remember { mutableStateOf(false) }
+    var newStatName by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
@@ -71,36 +73,11 @@ fun StatusScreen(navController: NavController) {
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-//                    border = BorderStroke(2.dp, Color.White)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Уровень:", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("$level", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = Color.White)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("Опыт: $experience XP", color = Color.White)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.End,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Монеты: $coins", color = Color.White)
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Default.Star,
-                                contentDescription = null,
-                                tint = Color.Yellow
-                            )
-                        }
+                        Text("Уровень: 1", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Опыт: 0 XP", color = Color.White)
+                        Text("Монеты: 0", color = Color.White)
                     }
                 }
 
@@ -112,27 +89,26 @@ fun StatusScreen(navController: NavController) {
                     onToggle = { expandedStats.value = !expandedStats.value }
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        stats.forEach { (name, value) ->
+                        customStats.forEach { stat ->
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 4.dp)
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Star,
-                                    contentDescription = null,
-                                    tint = Color.White
-                                )
+                                Icon(Icons.Default.Star, contentDescription = null, tint = Color.White)
                                 Spacer(modifier = Modifier.width(8.dp))
-                                Text("$name: $value", color = Color.White)
+                                Text("${stat.name}: ${stat.value}", color = Color.White)
+                                Spacer(Modifier.weight(1f))
+                                IconButton(onClick = { viewModel.deleteStat(stat) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
+                                }
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-                            Button(onClick = { /*TODO*/ }) {
+                            Button(onClick = { showAddDialog = true }) {
                                 Text("Добавить")
-                            }
-                            Button(onClick = { /*TODO*/ }) {
-                                Text("Удалить")
                             }
                         }
                     }
@@ -146,29 +122,9 @@ fun StatusScreen(navController: NavController) {
                     onToggle = { expandedDailies.value = !expandedDailies.value }
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        dailies.forEach {
-                            Text("- $it", color = Color.White)
-                        }
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { /*TODO*/ }) {
-                            Text("Добавить ежедневку")
-                        }
+                        Text("Почистить зубы", color = Color.White)
+                        Text("Сделать зарядку", color = Color.White)
                     }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.Cyan.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                        .padding(12.dp)
-                ) {
-                    Text(
-                        text = "ВНИМАНИЕ! - За невыполнение ежедневных заданий последует соответствующее наказание.",
-                        color = Color.Red,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -179,20 +135,57 @@ fun StatusScreen(navController: NavController) {
                     onToggle = { expandedTasks.value = !expandedTasks.value }
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        tasks.forEach {
-                            Text("- $it", color = Color.White)
-                        }
+                        Text("Сделать домашку", color = Color.White)
+                        Text("Купить продукты", color = Color.White)
                     }
                 }
             }
         }
 
-        BottomNavBar(navController = navController)
+        if (showAddDialog) {
+            AlertDialog(
+                onDismissRequest = { showAddDialog = false },
+                title = { Text("Добавить характеристику") },
+                text = {
+                    OutlinedTextField(
+                        value = newStatName,
+                        onValueChange = { newStatName = it },
+                        label = { Text("Название") }
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (newStatName.isNotBlank()) {
+                                viewModel.addStat(newStatName)
+                                newStatName = ""
+                                showAddDialog = false
+                            }
+                        }
+                    ) {
+                        Text("Добавить")
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = {
+                        showAddDialog = false
+                        newStatName = ""
+                    }) {
+                        Text("Отмена")
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun ExpandableSection(title: String, expanded: Boolean, onToggle: () -> Unit, content: @Composable () -> Unit) {
+fun ExpandableSection(
+    title: String,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    content: @Composable () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -205,41 +198,8 @@ fun ExpandableSection(title: String, expanded: Boolean, onToggle: () -> Unit, co
                 .fillMaxWidth()
                 .clickable { onToggle() }
         ) {
-//            Icon(
-//                imageVector = if (expanded) Icons.Default.ExpandMore else Icons.Default.KeyboardArrowRight,
-//                contentDescription = null,
-//                tint = Color.White
-//            )
-            Spacer(modifier = Modifier.width(8.dp))
             Text(title, fontWeight = FontWeight.Bold, color = Color.White)
         }
         if (expanded) content()
-    }
-}
-
-@Composable
-fun BottomNavBar(navController: NavController) {
-    Row(
-        modifier = Modifier
-            //.align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .padding(8.dp)
-            .background(Color.White.copy(alpha = 0.1f), RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceAround
-    ) {
-//        val icons = listOf(Icons.Default.Person, Icons.Default.List, Icons.Default.ShoppingCart, Icons.Default.Inventory, Icons.Default.Settings)
-//        icons.forEachIndexed { index, icon ->
-//            Box(
-//                modifier = Modifier
-//                    .size(40.dp)
-//                    .clip(RoundedCornerShape(8.dp))
-//                    .background(Color.White.copy(alpha = if (index == 0) 0.3f else 0f))
-//                    .clickable { /* TODO: навигация */ },
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Icon(icon, contentDescription = null, tint = Color.White)
-//            }
-//        }
     }
 }
