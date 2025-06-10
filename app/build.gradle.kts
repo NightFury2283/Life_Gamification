@@ -81,6 +81,13 @@ dependencies {
     kapt(libs.androidx.room.compiler)
 
 
+    // Для юнит-тестирования ViewModel и корутин
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("io.mockk:mockk:1.13.10") // Мокаем зависимости
+    testImplementation(kotlin("test"))
+
+
 }
 
 

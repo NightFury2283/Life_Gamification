@@ -28,7 +28,7 @@ fun StatusScreen(
     userId: String,
     viewModel: StatusViewModel = viewModel(
         factory = StatusViewModelFactory(
-            context = LocalContext.current,
+            context = LocalContext.current.applicationContext,
             userId = userId
         )
     )
@@ -40,6 +40,8 @@ fun StatusScreen(
     val customStats by viewModel.stats.collectAsState()
     var showAddDialog by remember { mutableStateOf(false) }
     var newStatName by remember { mutableStateOf("") }
+    val user = viewModel.user.value
+
 
     Box(
         modifier = Modifier
@@ -75,9 +77,9 @@ fun StatusScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Уровень: 1", color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Опыт: 0 XP", color = Color.White)
-                        Text("Монеты: 0", color = Color.White)
+                        Text("Уровень: ${user?.level ?: "—"}", color = Color.White, fontWeight = FontWeight.Bold)
+                        Text("Опыт: ${user?.experience ?: 0} XP", color = Color.White)
+                        Text("Монеты: ${user?.money ?: 0}", color = Color.White)
                     }
                 }
 

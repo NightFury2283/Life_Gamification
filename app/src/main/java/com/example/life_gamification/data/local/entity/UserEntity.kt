@@ -10,6 +10,7 @@ data class UserEntity(
     val email: String?,
     val level: Int = 1,
     val experience: Int = 0,
+    val money: Int = 0,
     val healthXp: Int = 0,
     val intellectXp: Int = 0,
     val productivityXp: Int = 0,

@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.life_gamification.data.local.db.AppDatabase
+import com.example.life_gamification.data.repository.UserRepository
+import com.example.life_gamification.data.repository.UserRepositoryImpl
 import com.example.life_gamification.domain.repository.UserStatRepository
 import com.example.life_gamification.domain.repository.UserStatRepositoryImpl
 import com.example.life_gamification.domain.usecase.AddCustomStatUseCase
@@ -21,12 +23,15 @@ class StatusViewModelFactory(
             val db = AppDatabase.getDatabase(context)
             val dao = db.userStatDao()
             val repo: UserStatRepository = UserStatRepositoryImpl(dao)
+            val userDao = db.userDao()
+            val userRepository: UserRepository = UserRepositoryImpl(userDao)
 
             return StatusViewModel(
                 userId = userId,
                 getCustomStatUseCase = GetCustomStatUseCase(dao),
                 addCustomStatUseCase = AddCustomStatUseCase(repo),
-                deleteCustomStatUseCase = DeleteCustomStatUseCase(repo)
+                deleteCustomStatUseCase = DeleteCustomStatUseCase(repo),
+                userRepository = userRepository
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
