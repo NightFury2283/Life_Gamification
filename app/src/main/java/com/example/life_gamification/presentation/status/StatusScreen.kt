@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-
+import com.example.life_gamification.presentation.common.ConfirmDialog
 
 
 @Composable
@@ -54,7 +54,7 @@ fun StatusScreen(
     var newDailyName by remember { mutableStateOf("") }
     var newDailyXp by remember { mutableStateOf("1") }
 
-
+    var deletionTarget by remember { mutableStateOf<DeletionTarget?>(null) }
 
     Box(
         modifier = Modifier
@@ -115,7 +115,12 @@ fun StatusScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("${stat.name}: ${stat.value}", color = Color.White)
                                 Spacer(Modifier.weight(1f))
-                                IconButton(onClick = { viewModel.deleteStat(stat) }) {
+                                IconButton(onClick = {
+                                    deletionTarget = DeletionTarget.Stat(
+                                        name = stat.name,
+                                        onConfirm = { viewModel.deleteStat(stat) }
+                                    )
+                                }) {
                                     Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
                                 }
                             }
@@ -149,7 +154,12 @@ fun StatusScreen(
                                     checked = viewModel.completedDailiesToday.contains(daily.id),
                                     onCheckedChange = { isChecked ->
                                         viewModel.setDailyCompletedToday(daily, isChecked)
-                                    }
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = Color.White,
+                                        uncheckedColor = Color.White,
+                                        checkmarkColor = Color.Black
+                                    )
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
@@ -162,7 +172,12 @@ fun StatusScreen(
                                     color = Color.Green,
                                     fontWeight = FontWeight.Bold
                                 )
-                                IconButton(onClick = { viewModel.deleteDaily(daily) }) {
+                                IconButton(onClick = {
+                                    deletionTarget = DeletionTarget.Daily(
+                                        name = daily.name,
+                                        onConfirm = { viewModel.deleteDaily(daily) }
+                                    )
+                                }) {
                                     Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
                                 }
                             }
@@ -183,7 +198,7 @@ fun StatusScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 ExpandableSection(
-                    title = "ЗАДАЧИ: СЕГОДНЯ",
+                    title = "ЗАДАЧИ НА СЕГОДНЯ",
                     expanded = expandedTasks.value,
                     onToggle = { expandedTasks.value = !expandedTasks.value }
                 ) {
@@ -284,6 +299,26 @@ fun StatusScreen(
                 }
             )
         }
+        deletionTarget?.let { target ->
+            val title = "Подтвердите удаление"
+            val message = when (target) {
+                is DeletionTarget.Stat -> "Вы точно хотите удалить характеристику \"${target.name}\"?"
+                is DeletionTarget.Daily -> "Вы точно хотите удалить ежедневку \"${target.name}\"?"
+            }
+
+            ConfirmDialog(
+                title = title,
+                text = message,
+                onConfirm = {
+                    target.onConfirm()
+                    deletionTarget = null
+                },
+                onDismiss = {
+                    deletionTarget = null
+                }
+            )
+        }
+
 
     }
 }
