@@ -1,4 +1,4 @@
-package com.example.life_gamification.domain.usecase
+package com.example.life_gamification.domain.usecase.StatsUseCase
 
 
 

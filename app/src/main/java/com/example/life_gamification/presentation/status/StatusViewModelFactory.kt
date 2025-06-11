@@ -6,11 +6,11 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.life_gamification.data.local.db.AppDatabase
 import com.example.life_gamification.data.repository.UserRepository
 import com.example.life_gamification.data.repository.UserRepositoryImpl
-import com.example.life_gamification.domain.repository.UserStatRepository
-import com.example.life_gamification.domain.repository.UserStatRepositoryImpl
-import com.example.life_gamification.domain.usecase.AddCustomStatUseCase
-import com.example.life_gamification.domain.usecase.DeleteCustomStatUseCase
-import com.example.life_gamification.domain.usecase.GetCustomStatUseCase
+import com.example.life_gamification.domain.repository.UserStatsRepositories.UserStatRepository
+import com.example.life_gamification.domain.repository.UserStatsRepositories.UserStatRepositoryImpl
+import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
 
 class StatusViewModelFactory(
     private val context: Context,

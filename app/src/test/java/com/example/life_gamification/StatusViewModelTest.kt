@@ -2,9 +2,9 @@ package com.example.life_gamification
 
 import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserStatEntity
-import com.example.life_gamification.domain.usecase.AddCustomStatUseCase
-import com.example.life_gamification.domain.usecase.DeleteCustomStatUseCase
-import com.example.life_gamification.domain.usecase.GetCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
 import com.example.life_gamification.data.repository.UserRepository
 import com.example.life_gamification.presentation.status.StatusViewModel
 import io.mockk.coEvery

@@ -1,5 +1,4 @@
-package com.example.life_gamification.domain.repository
-
+package com.example.life_gamification.domain.repository.UserStatsRepositories
 
 import com.example.life_gamification.data.local.dao.UserStatDao
 import com.example.life_gamification.data.local.entity.UserStatEntity
