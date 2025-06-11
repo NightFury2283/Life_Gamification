@@ -12,10 +12,10 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface UserDailyQuestsDao {
 
-    @Query("SELECT * FROM user_stats WHERE userId = :userId")
+    @Query("SELECT * FROM user_daily WHERE userId = :userId")
     fun getDailyQuestsFlow(userId: String): Flow<List<UserDailyQuestsEntity>>
 
-    @Query("SELECT * FROM user_stats WHERE userId = :userId")
+    @Query("SELECT * FROM user_daily WHERE userId = :userId")
     suspend fun getDailyQuests(userId: String): List<UserDailyQuestsEntity> // <-- МОЖЕТ ОСТАТЬСЯ для других задач
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

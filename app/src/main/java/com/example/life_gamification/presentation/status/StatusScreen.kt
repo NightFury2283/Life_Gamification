@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
@@ -16,11 +17,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+
+
 
 @Composable
 fun StatusScreen(
@@ -38,9 +42,18 @@ fun StatusScreen(
     val expandedTasks = remember { mutableStateOf(true) }
 
     val customStats by viewModel.stats.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
+    val customDaily by viewModel.daily.collectAsState()
+
+    //диалоговое окно характеристик
+    var showAddStatDialog by remember { mutableStateOf(false) }
     var newStatName by remember { mutableStateOf("") }
     val user = viewModel.user.value
+
+    //диалоговое окно ежедневок
+    var showAddDailyDialog by remember { mutableStateOf(false) }
+    var newDailyName by remember { mutableStateOf("") }
+    var newDailyXp by remember { mutableStateOf("1") }
+
 
 
     Box(
@@ -109,7 +122,7 @@ fun StatusScreen(
                         }
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-                            Button(onClick = { showAddDialog = true }) {
+                            Button(onClick = { showAddStatDialog = true }) {
                                 Text("Добавить")
                             }
                         }
@@ -124,10 +137,41 @@ fun StatusScreen(
                     onToggle = { expandedDailies.value = !expandedDailies.value }
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text("Почистить зубы", color = Color.White)
-                        Text("Сделать зарядку", color = Color.White)
+                        customDaily.forEach { daily ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Icon(Icons.Default.Star, contentDescription = null, tint = Color.White)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = daily.name,
+                                    color = Color.White,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Text(
+                                    text = "+${daily.addXp} XP",
+                                    color = Color.Green,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                IconButton(onClick = { viewModel.deleteDaily(daily) }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+                            Button(onClick = { showAddDailyDialog = true }) {
+                                Text("Добавить")
+                            }
+                        }
                     }
                 }
+
+
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -144,9 +188,9 @@ fun StatusScreen(
             }
         }
 
-        if (showAddDialog) {
+        if (showAddStatDialog) {
             AlertDialog(
-                onDismissRequest = { showAddDialog = false },
+                onDismissRequest = { showAddStatDialog = false },
                 title = { Text("Добавить характеристику") },
                 text = {
                     OutlinedTextField(
@@ -161,7 +205,7 @@ fun StatusScreen(
                             if (newStatName.isNotBlank()) {
                                 viewModel.addStat(newStatName)
                                 newStatName = ""
-                                showAddDialog = false
+                                showAddStatDialog = false
                             }
                         }
                     ) {
@@ -170,7 +214,7 @@ fun StatusScreen(
                 },
                 dismissButton = {
                     OutlinedButton(onClick = {
-                        showAddDialog = false
+                        showAddStatDialog = false
                         newStatName = ""
                     }) {
                         Text("Отмена")
@@ -178,6 +222,62 @@ fun StatusScreen(
                 }
             )
         }
+        if (showAddDailyDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showAddDailyDialog = false
+                    newDailyName = ""
+                    newDailyXp = "1"
+                },
+                title = { Text("Добавить ежедневку") },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = newDailyName,
+                            onValueChange = { newDailyName = it },
+                            label = { Text("Название") }
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedTextField(
+                            value = newDailyXp,
+                            onValueChange = { newText ->
+                                if (newText.all { it.isDigit() }) {
+                                    newDailyXp = newText
+                                }
+                            },
+                            label = { Text("XP") },
+                            keyboardOptions = KeyboardOptions.Default.copy(
+                                keyboardType = KeyboardType.Number
+                            )
+
+                        )
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = {
+                        val xp = newDailyXp.toIntOrNull() ?: 1
+                        if (newDailyName.isNotBlank()) {
+                            viewModel.addDaily(newDailyName, xp)
+                            newDailyName = ""
+                            newDailyXp = "1"
+                            showAddDailyDialog = false
+                        }
+                    }) {
+                        Text("Добавить")
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = {
+                        showAddDailyDialog = false
+                        newDailyName = ""
+                        newDailyXp = "1"
+                    }) {
+                        Text("Отмена")
+                    }
+                }
+            )
+        }
+
     }
 }
 

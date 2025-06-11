@@ -1,32 +1,32 @@
 package com.example.life_gamification.presentation.status
 
+import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
 import com.example.life_gamification.data.local.entity.UserEntity
-import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUseCase
-import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
 import com.example.life_gamification.data.local.entity.UserStatEntity
 import com.example.life_gamification.data.repository.UserRepository
-import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatusUseCases
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import androidx.compose.runtime.State
-
 
 
 class StatusViewModel(
     private val userId: String,
-    private val getCustomStatUseCase: GetCustomStatUseCase,
-    private val addCustomStatUseCase: AddCustomStatUseCase,
-    private val deleteCustomStatUseCase: DeleteCustomStatUseCase,
+    private val useCases: StatusUseCases,
     private val userRepository: UserRepository
 ) : ViewModel() {
-
+    //характеристики
     val stats: StateFlow<List<UserStatEntity>> =
-        getCustomStatUseCase(userId)
+        useCases.getCustomStat(userId)
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    //ежедневки
+    val daily: StateFlow<List<UserDailyQuestsEntity>> =
+        useCases.getCustomDaily(userId)
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     private val _user = mutableStateOf<UserEntity?>(null)
@@ -40,17 +40,32 @@ class StatusViewModel(
         }
     }
 
-
+    //методы характеристик
     fun addStat(name: String, value: Int = 0) {
         viewModelScope.launch {
-            addCustomStatUseCase(userId, name, value)
+            useCases.addCustomStat(userId, name, value)
         }
     }
 
 
     fun deleteStat(stat: UserStatEntity) {
         viewModelScope.launch {
-            deleteCustomStatUseCase(stat)
+            useCases.deleteCustomStat(stat)
+        }
+    }
+
+
+    //методы ежедневок
+    fun addDaily(name: String, addXp: Int = 1){
+        viewModelScope.launch {
+            useCases.addCustomDaily(userId, name, addXp)
+        }
+    }
+
+
+    fun deleteDaily(daily: UserDailyQuestsEntity){
+        viewModelScope.launch {
+            useCases.deleteCustomDaily(daily)
         }
     }
 
