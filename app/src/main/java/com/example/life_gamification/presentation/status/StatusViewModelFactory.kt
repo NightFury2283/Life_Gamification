@@ -4,14 +4,16 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.life_gamification.data.local.db.AppDatabase
-import com.example.life_gamification.data.repository.UserRepository
+import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
 import com.example.life_gamification.data.repository.UserRepositoryImpl
+import com.example.life_gamification.domain.repository.UserDailyRepositories.UserDailyRepository
 import com.example.life_gamification.domain.repository.UserDailyRepositories.UserDailyRepositoryImpl
-import com.example.life_gamification.domain.repository.UserStatsRepositories.UserStatRepository
 import com.example.life_gamification.domain.repository.UserStatsRepositories.UserStatRepositoryImpl
 import com.example.life_gamification.domain.usecase.DailyUseCase.AddCustomDailyUseCase
 import com.example.life_gamification.domain.usecase.DailyUseCase.DeleteCustomDailyUseCase
+import com.example.life_gamification.domain.usecase.DailyUseCase.GetCustomDailyListUseCase
 import com.example.life_gamification.domain.usecase.DailyUseCase.GetCustomDailyUseCase
+import com.example.life_gamification.domain.usecase.DailyUseCase.UpdateDailyQuestUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
@@ -37,15 +39,19 @@ class StatusViewModelFactory(
 
 
             val dailyDao = db.userDailyDao()
-            val dailyRepo = UserDailyRepositoryImpl(dailyDao)
+            val dailyRepoImpl = UserDailyRepositoryImpl(dailyDao)
+
+
 
             val useCases = StatusUseCases(
                 getCustomStat = GetCustomStatUseCase(statDao),
                 addCustomStat = AddCustomStatUseCase(statRepo),
                 deleteCustomStat = DeleteCustomStatUseCase(statRepo),
                 getCustomDaily = GetCustomDailyUseCase(dailyDao),
-                addCustomDaily = AddCustomDailyUseCase(dailyRepo),
-                deleteCustomDaily = DeleteCustomDailyUseCase(dailyRepo)
+                addCustomDaily = AddCustomDailyUseCase(dailyRepoImpl),
+                deleteCustomDaily = DeleteCustomDailyUseCase(dailyRepoImpl),
+                getCustomDailyList = GetCustomDailyListUseCase(dailyRepoImpl),
+                updateDaily = UpdateDailyQuestUseCase(dailyRepoImpl)
             )
 
             return StatusViewModel(

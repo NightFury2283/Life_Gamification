@@ -8,5 +8,6 @@ data class UserDailyQuestsEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val userId: String,
     val name: String,
-    val addXp: Int
+    val addXp: Int,
+    val lastCompletedDate: Long = 0L
 )

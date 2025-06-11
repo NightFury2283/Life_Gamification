@@ -146,9 +146,9 @@ fun StatusScreen(
                                     .padding(vertical = 4.dp)
                             ) {
                                 Checkbox(
-                                    checked = isChecked,
-                                    onCheckedChange = { checked ->
-                                        viewModel.setDailyCompletedToday(daily, checked)
+                                    checked = viewModel.completedDailiesToday.contains(daily.id),
+                                    onCheckedChange = { isChecked ->
+                                        viewModel.setDailyCompletedToday(daily, isChecked)
                                     }
                                 )
                                 Spacer(modifier = Modifier.width(8.dp))
