@@ -138,13 +138,19 @@ fun StatusScreen(
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
                         customDaily.forEach { daily ->
+                            val isChecked = viewModel.isDailyCompletedToday(daily)
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(vertical = 4.dp)
                             ) {
-                                Icon(Icons.Default.Star, contentDescription = null, tint = Color.White)
+                                Checkbox(
+                                    checked = isChecked,
+                                    onCheckedChange = { checked ->
+                                        viewModel.setDailyCompletedToday(daily, checked)
+                                    }
+                                )
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text(
                                     text = daily.name,
@@ -161,6 +167,7 @@ fun StatusScreen(
                                 }
                             }
                         }
+
 
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {

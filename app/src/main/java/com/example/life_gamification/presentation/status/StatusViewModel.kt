@@ -1,6 +1,7 @@
 package com.example.life_gamification.presentation.status
 
 import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -29,10 +30,18 @@ class StatusViewModel(
         useCases.getCustomDaily(userId)
             .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+
+    //обработка выполнения сегодня ежедневок
+    private val _completedDailiesToday = mutableStateListOf<Int>()
+    val completedDailiesToday: List<Int> get() = _completedDailiesToday
+
     private val _user = mutableStateOf<UserEntity?>(null)
     val user: State<UserEntity?> = _user
     //Зачем: Это состояние будет отслеживаться в UI
     // — оно обновится, когда пользователь загрузится.
+
+
+
 
     init {
         viewModelScope.launch {
@@ -68,5 +77,37 @@ class StatusViewModel(
             useCases.deleteCustomDaily(daily)
         }
     }
+
+    //функции выполнения ежедневок (обработка)
+    fun isDailyCompletedToday(daily: UserDailyQuestsEntity): Boolean {
+        return _completedDailiesToday.contains(daily.id)
+    }
+
+    fun setDailyCompletedToday(daily: UserDailyQuestsEntity, isCompleted: Boolean) {
+        if (isCompleted) {
+            if (!_completedDailiesToday.contains(daily.id)) {
+                _completedDailiesToday.add(daily.id)
+                addExperience(daily.addXp)
+            }
+        } else {
+            if (_completedDailiesToday.contains(daily.id)) {
+                _completedDailiesToday.remove(daily.id)
+                addExperience(-daily.addXp)
+            }
+        }
+    }
+
+
+    fun addExperience(amount: Int) {
+        viewModelScope.launch {
+            _user.value?.let { user ->
+                val updatedUser = user.copy(experience = (user.experience + amount).coerceAtLeast(0))
+                userRepository.updateUser(updatedUser)
+                _user.value = updatedUser
+            }
+        }
+    }
+
+
 
 }

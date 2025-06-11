@@ -4,4 +4,5 @@ import com.example.life_gamification.data.local.entity.UserEntity
 
 interface UserRepository {
     suspend fun getUserById(userId: String): UserEntity?
+    suspend fun updateUser(user: UserEntity)
 }
