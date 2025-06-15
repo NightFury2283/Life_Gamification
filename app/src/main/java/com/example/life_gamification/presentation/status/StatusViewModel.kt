@@ -42,10 +42,16 @@ class StatusViewModel(
 
 
 
+    //состояние - сколько осталось очков распределения
+    private val _statPoints = mutableStateOf(0)
+    val statPoints: State<Int> get() = _statPoints
 
     init {
         viewModelScope.launch {
             _user.value = userRepository.getUserById(userId)
+            if (!isToday(_user.value?.lastLoginTime ?: 0L)) {
+                _statPoints.value = 0 // сбросить накопленные очки
+            }
 
             val dailies = useCases.getCustomDailyList(userId)
             _completedDailiesToday.clear()
@@ -97,6 +103,7 @@ class StatusViewModel(
 
             if (isCompleted && !_completedDailiesToday.contains(daily.id)) {
                 _completedDailiesToday.add(daily.id)
+                checkAllDailiesCompleted()
 
                 // Добавляем опыт
                 val updatedUser = currentUser.copy(experience = currentUser.experience + daily.addXp)
@@ -141,6 +148,28 @@ class StatusViewModel(
         return cal1.get(java.util.Calendar.YEAR) == cal2.get(java.util.Calendar.YEAR) &&
                 cal1.get(java.util.Calendar.DAY_OF_YEAR) == cal2.get(java.util.Calendar.DAY_OF_YEAR)
     }
+
+    //проверка: все ли ежедневки выполнены
+    private fun checkAllDailiesCompleted() {
+        val allCompleted = daily.value.all { isDailyCompletedToday(it) }
+        if (allCompleted && _statPoints.value == 0) {
+            _statPoints.value = 3 // выдать очки только один раз в день
+        }
+    }
+
+
+    //распределение очков(увеличение хар-ки на 1)
+    fun increaseStat(stat: UserStatEntity) {
+        if (_statPoints.value > 0) {
+            viewModelScope.launch {
+                val updatedStat = stat.copy(value = stat.value + 1)
+                useCases.updateCustomStat(updatedStat)
+                _statPoints.value -= 1
+            }
+        }
+    }
+
+
 
 
 }

@@ -17,6 +17,7 @@ import com.example.life_gamification.domain.usecase.DailyUseCase.UpdateDailyQues
 import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.UpdateCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatusUseCases
 
 class StatusViewModelFactory(
@@ -47,6 +48,7 @@ class StatusViewModelFactory(
                 getCustomStat = GetCustomStatUseCase(statDao),
                 addCustomStat = AddCustomStatUseCase(statRepo),
                 deleteCustomStat = DeleteCustomStatUseCase(statRepo),
+                updateCustomStat = UpdateCustomStatUseCase(statRepo),
                 getCustomDaily = GetCustomDailyUseCase(dailyDao),
                 addCustomDaily = AddCustomDailyUseCase(dailyRepoImpl),
                 deleteCustomDaily = DeleteCustomDailyUseCase(dailyRepoImpl),

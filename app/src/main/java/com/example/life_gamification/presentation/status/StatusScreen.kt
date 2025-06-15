@@ -56,6 +56,10 @@ fun StatusScreen(
 
     var deletionTarget by remember { mutableStateOf<DeletionTarget?>(null) }
 
+    //кол-во улучшений хар-ик
+    val statPoints by viewModel.statPoints
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -103,6 +107,15 @@ fun StatusScreen(
                     expanded = expandedStats.value,
                     onToggle = { expandedStats.value = !expandedStats.value }
                 ) {
+                    if (statPoints > 0) {
+                        Text(
+                            text = "Очки для улучшения: $statPoints",
+                            color = Color.Yellow,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
+
                     Column(modifier = Modifier.padding(8.dp)) {
                         customStats.forEach { stat ->
                             Row(
@@ -115,6 +128,19 @@ fun StatusScreen(
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Text("${stat.name}: ${stat.value}", color = Color.White)
                                 Spacer(Modifier.weight(1f))
+
+                                // Показывать "+" если есть доступные очки
+                                if (statPoints > 0) {
+                                    Button(
+                                        onClick = { viewModel.increaseStat(stat) },
+                                        modifier = Modifier.size(32.dp),
+                                        contentPadding = PaddingValues(0.dp),
+                                        colors = ButtonDefaults.buttonColors(containerColor = Color.Green)
+                                    ) {
+                                        Text("+", color = Color.White)
+                                    }
+                                }
+
                                 IconButton(onClick = {
                                     deletionTarget = DeletionTarget.Stat(
                                         name = stat.name,
@@ -125,6 +151,7 @@ fun StatusScreen(
                                 }
                             }
                         }
+
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
                             Button(onClick = { showAddStatDialog = true }) {
