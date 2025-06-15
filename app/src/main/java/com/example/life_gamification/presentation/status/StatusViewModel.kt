@@ -152,10 +152,24 @@ class StatusViewModel(
     //проверка: все ли ежедневки выполнены
     private fun checkAllDailiesCompleted() {
         val allCompleted = daily.value.all { isDailyCompletedToday(it) }
-        if (allCompleted && _statPoints.value == 0) {
-            _statPoints.value = 3 // выдать очки только один раз в день
+
+        val today = System.currentTimeMillis()
+        val lastBonusDate = _user.value?.lastStatBonusDate ?: 0L
+
+        if (allCompleted && !isToday(lastBonusDate)) {
+            _statPoints.value = 3
+
+            // обновляем дату последней выдачи
+            val updatedUser = _user.value?.copy(lastStatBonusDate = today)
+            if (updatedUser != null) {
+                viewModelScope.launch {
+                    userRepository.updateUser(updatedUser)
+                    _user.value = updatedUser
+                }
+            }
         }
     }
+
 
 
     //распределение очков(увеличение хар-ки на 1)

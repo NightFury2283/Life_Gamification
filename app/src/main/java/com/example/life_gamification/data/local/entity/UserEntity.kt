@@ -14,5 +14,6 @@ data class UserEntity(
     val healthXp: Int = 0,
     val intellectXp: Int = 0,
     val productivityXp: Int = 0,
+    val lastStatBonusDate: Long = 0L,
     val lastLoginTime: Long = System.currentTimeMillis()
 )
