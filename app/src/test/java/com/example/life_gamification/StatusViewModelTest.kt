@@ -6,7 +6,7 @@ import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUs
 import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
 import com.example.life_gamification.data.repository.UserRepository
-import com.example.life_gamification.presentation.status.StatusViewModel
+import com.example.life_gamification.presentation.Status.StatusViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk

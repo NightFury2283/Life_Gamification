@@ -18,7 +18,7 @@ import com.example.life_gamification.data.auth.AuthRepositoryImpl
 import com.example.life_gamification.data.local.db.AppDatabase
 import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.domain.auth.LoginWithGoogleUseCase
-import com.example.life_gamification.presentation.status.StatusScreen
+import com.example.life_gamification.presentation.Status.StatusScreen
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 
@@ -36,6 +37,14 @@ import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.life_gamification.presentation.Inventory.InventoryScreen
+import com.example.life_gamification.presentation.Settings.SettingsScreen
+import com.example.life_gamification.presentation.Shop.ShopScreen
+import com.example.life_gamification.presentation.Tasks.TasksScreen
+import com.example.life_gamification.presentation.nav.BottomNavBar
+import com.example.life_gamification.presentation.nav.BottomNavScreen
 
 
 @Composable
@@ -90,11 +99,12 @@ fun AppNavHost(appContext: Context) {
     // ======= Навигация =======
     LaunchedEffect(loginState) {
         if (loginState?.isSuccess == true) {
-            navController.navigate("status") {
+            navController.navigate("main") {
                 popUpTo("sign_in") { inclusive = true }
             }
         }
     }
+
 
     NavHost(navController = navController, startDestination = "sign_in") {
         composable("sign_in") {
@@ -102,14 +112,12 @@ fun AppNavHost(appContext: Context) {
                 launcher.launch(googleSignInClient.signInIntent)
             })
         }
-        composable("status") {
+
+        // Это обёртка, которая показывает нижнее меню и экран
+        composable("main") {
             if (userId != null) {
-                StatusScreen(
-                    navController = navController,
-                    userId = userId!!
-                )
+                MainScreen(navController = navController, userId = userId!!)
             } else {
-                // Заглушка на случай если userId еще не получен
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -121,4 +129,43 @@ fun AppNavHost(appContext: Context) {
             }
         }
     }
+
 }
+@Composable
+fun MainScreen(navController: NavController, userId: String) {
+    val innerNavController = rememberNavController()
+
+    val currentBackStackEntry by innerNavController.currentBackStackEntryAsState()
+    val currentRoute = currentBackStackEntry?.destination?.route
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.weight(1f)) {
+                NavHost(
+                    navController = innerNavController,
+                    startDestination = BottomNavScreen.Status.route
+                ) {
+                    composable(BottomNavScreen.Status.route) {
+                        StatusScreen(navController = innerNavController, userId = userId)
+                    }
+                    composable(BottomNavScreen.Tasks.route) {
+                        TasksScreen()
+                    }
+                    composable(BottomNavScreen.Shop.route) {
+                        ShopScreen()
+                    }
+                    composable(BottomNavScreen.Inventory.route) {
+                        InventoryScreen()
+                    }
+                    composable(BottomNavScreen.Settings.route) {
+                        SettingsScreen()
+                    }
+                }
+            }
+
+            BottomNavBar(navController = innerNavController, currentRoute = currentRoute)
+        }
+    }
+}
+
+

@@ -1,12 +1,10 @@
-package com.example.life_gamification.presentation.status
+package com.example.life_gamification.presentation.Status
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.life_gamification.data.local.db.AppDatabase
-import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
 import com.example.life_gamification.data.repository.UserRepositoryImpl
-import com.example.life_gamification.domain.repository.UserDailyRepositories.UserDailyRepository
 import com.example.life_gamification.domain.repository.UserDailyRepositories.UserDailyRepositoryImpl
 import com.example.life_gamification.domain.repository.UserStatsRepositories.UserStatRepositoryImpl
 import com.example.life_gamification.domain.usecase.DailyUseCase.AddCustomDailyUseCase

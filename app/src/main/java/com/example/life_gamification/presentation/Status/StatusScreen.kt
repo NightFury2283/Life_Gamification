@@ -1,4 +1,4 @@
-package com.example.life_gamification.presentation.status
+package com.example.life_gamification.presentation.Status
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

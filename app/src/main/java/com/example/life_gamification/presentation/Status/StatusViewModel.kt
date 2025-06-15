@@ -1,4 +1,4 @@
-package com.example.life_gamification.presentation.status
+package com.example.life_gamification.presentation.Status
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
