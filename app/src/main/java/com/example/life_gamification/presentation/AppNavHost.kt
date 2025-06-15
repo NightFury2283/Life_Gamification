@@ -39,7 +39,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.example.life_gamification.domain.repository.UserInventoryRepositories.UserInventoryRepository
 import com.example.life_gamification.presentation.Inventory.InventoryScreen
+import com.example.life_gamification.presentation.Inventory.InventoryViewModel
 import com.example.life_gamification.presentation.Settings.SettingsScreen
 import com.example.life_gamification.presentation.Shop.ShopScreen
 import com.example.life_gamification.presentation.Tasks.TasksScreen
@@ -152,7 +154,7 @@ fun MainScreen(navController: NavController, userId: String) {
                         TasksScreen()
                     }
                     composable(BottomNavScreen.Shop.route) {
-                        ShopScreen()
+                        ShopScreen(userId = userId)
                     }
                     composable(BottomNavScreen.Inventory.route) {
                         InventoryScreen()
