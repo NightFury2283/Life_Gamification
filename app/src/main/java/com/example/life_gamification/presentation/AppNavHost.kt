@@ -157,7 +157,7 @@ fun MainScreen(navController: NavController, userId: String) {
                         ShopScreen(userId = userId)
                     }
                     composable(BottomNavScreen.Inventory.route) {
-                        InventoryScreen()
+                        InventoryScreen(userId = userId)
                     }
                     composable(BottomNavScreen.Settings.route) {
                         SettingsScreen()
