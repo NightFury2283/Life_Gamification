@@ -8,12 +8,12 @@ data class UserEntity(
     @PrimaryKey val id: String,
     val name: String,
     val email: String?,
-    val level: Int = 1,
-    val experience: Int = 0,
-    val money: Int = 0,
-    val healthXp: Int = 0,
-    val intellectXp: Int = 0,
-    val power: Int = 0,
+    var level: Int = 1,
+    var experience: Int = 0,
+    var money: Int = 100,
+    var health: Int = 0,
+    var intellect: Int = 0,
+    var strength: Int = 0,
     val lastStatBonusDate: Long = 0L,
     val lastLoginTime: Long = System.currentTimeMillis()
 )
