@@ -4,42 +4,40 @@ package com.example.life_gamification.domain.usecase
 import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserInventoryItemEntity
 import com.example.life_gamification.data.local.dao.UserDao
+import com.example.life_gamification.data.local.dao.UserStatDao
 
 class ItemEffectHandler(
-    private val userDao: UserDao
+    private val userDao: UserDao,
+    private val statDao: UserStatDao
 ) {
 
     suspend fun applyItemEffect(userId: String, item: UserInventoryItemEntity) {
-        val user = userDao.getUserById(userId) ?: return
-
-        when (item.type) {
-            "stat" -> applyStatEffect(user, item.effectValue)
-            // В будущем: "buff", "chest" и т.д.
+        if (item.type == "stat") {
+            applyStatEffect(userId, item.effectValue)
         }
-
-        userDao.update(user)
     }
 
-    private fun applyStatEffect(user: UserEntity, effect: String?) {
+    private suspend fun applyStatEffect(userId: String, effect: String?) {
         if (effect == null) return
 
-        when {
-            effect.startsWith("+") && effect.endsWith("_intellect") -> {
-                val value = effect.removePrefix("+").removeSuffix("_intellect").toIntOrNull() ?: return
-                user.intellect += value
-            }
+        val stats = statDao.getStats(userId).toMutableList()
 
-            effect.startsWith("+") && effect.endsWith("_health") -> {
-                val value = effect.removePrefix("+").removeSuffix("_health").toIntOrNull() ?: return
-                user.health += value
-            }
+        val mappings = mapOf(
+            "_intellect" to "Интеллект",
+            "_health" to "Здоровье",
+            "_strength" to "Сила"
+        )
 
-            effect.startsWith("+") && effect.endsWith("_strength") -> {
-                val value = effect.removePrefix("+").removeSuffix("_strength").toIntOrNull() ?: return
-                user.strength += value
+        for ((suffix, statName) in mappings) {
+            if (effect.startsWith("+") && effect.endsWith(suffix)) {
+                val value = effect.removePrefix("+").removeSuffix(suffix).toIntOrNull() ?: return
+                val stat = stats.find { it.name == statName } ?: return
+                stat.value += value
+                statDao.updateStat(stat)
+                return
             }
-
-            // Добавь ещё другие характеристики, если надо
         }
     }
+
+
 }

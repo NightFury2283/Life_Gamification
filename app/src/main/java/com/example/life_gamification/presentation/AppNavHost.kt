@@ -2,23 +2,49 @@
 
 package com.example.life_gamification.presentation
 
+
 import android.content.Context
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.life_gamification.presentation.auth.AuthViewModel
-import com.example.life_gamification.presentation.auth.SignInScreen
-import com.example.life_gamification.data.auth.FirebaseAuthSource
 import com.example.life_gamification.data.auth.AuthRepositoryImpl
+import com.example.life_gamification.data.auth.FirebaseAuthSource
 import com.example.life_gamification.data.local.db.AppDatabase
 import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.domain.auth.LoginWithGoogleUseCase
+import com.example.life_gamification.presentation.Inventory.InventoryScreen
+import com.example.life_gamification.presentation.Settings.SettingsScreen
+import com.example.life_gamification.presentation.Shop.ShopScreen
 import com.example.life_gamification.presentation.Status.StatusScreen
+import com.example.life_gamification.presentation.Status.StatusViewModel
+import com.example.life_gamification.presentation.Status.StatusViewModelFactory
+import com.example.life_gamification.presentation.Tasks.TasksScreen
+import com.example.life_gamification.presentation.auth.AuthViewModel
+import com.example.life_gamification.presentation.auth.SignInScreen
+import com.example.life_gamification.presentation.nav.BottomNavBar
+import com.example.life_gamification.presentation.nav.BottomNavScreen
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
@@ -26,27 +52,6 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Text
-
-
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
-import com.example.life_gamification.domain.repository.UserInventoryRepositories.UserInventoryRepository
-import com.example.life_gamification.presentation.Inventory.InventoryScreen
-import com.example.life_gamification.presentation.Inventory.InventoryViewModel
-import com.example.life_gamification.presentation.Settings.SettingsScreen
-import com.example.life_gamification.presentation.Shop.ShopScreen
-import com.example.life_gamification.presentation.Tasks.TasksScreen
-import com.example.life_gamification.presentation.nav.BottomNavBar
-import com.example.life_gamification.presentation.nav.BottomNavScreen
 
 
 @Composable
@@ -90,13 +95,20 @@ fun AppNavHost(appContext: Context) {
 
                 val db = AppDatabase.getDatabase(appContext)
                 CoroutineScope(Dispatchers.IO).launch {
-                    db.userDao().insertUser(user)
+                    val db = AppDatabase.getDatabase(appContext)
+                    val dao = db.userDao()
+                    val existingUser = dao.getUserById(account.id!!)
+                    if (existingUser == null) {
+                        db.userDao().insertUser(user)//только если пользователь ещё не существует
+                    }
                 }
             }
         } catch (e: Exception) {
             Log.e("GoogleSignIn", "Sign-in failed: ${e.message}")
         }
     }
+
+
 
     // ======= Навигация =======
     LaunchedEffect(loginState) {
@@ -135,6 +147,12 @@ fun AppNavHost(appContext: Context) {
 }
 @Composable
 fun MainScreen(navController: NavController, userId: String) {
+    val statusViewModel: StatusViewModel = viewModel(
+        factory = StatusViewModelFactory(
+            context = LocalContext.current,
+            userId = userId
+    )
+    )
     val innerNavController = rememberNavController()
 
     val currentBackStackEntry by innerNavController.currentBackStackEntryAsState()
@@ -154,7 +172,7 @@ fun MainScreen(navController: NavController, userId: String) {
                         TasksScreen()
                     }
                     composable(BottomNavScreen.Shop.route) {
-                        ShopScreen(userId = userId)
+                        ShopScreen(userId = userId, statusViewModel = statusViewModel)
                     }
                     composable(BottomNavScreen.Inventory.route) {
                         InventoryScreen(userId = userId)
@@ -169,5 +187,8 @@ fun MainScreen(navController: NavController, userId: String) {
         }
     }
 }
+
+
+
 
 

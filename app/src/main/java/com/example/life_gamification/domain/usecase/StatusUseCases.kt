@@ -8,11 +8,13 @@ import com.example.life_gamification.domain.usecase.DailyUseCase.GetCustomDailyU
 import com.example.life_gamification.domain.usecase.DailyUseCase.UpdateDailyQuestUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatListUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.UpdateCustomStatUseCase
 
 data class StatusUseCases(
     val getCustomStat: GetCustomStatUseCase,
+    val getCustomStatList: GetCustomStatListUseCase,
     val addCustomStat: AddCustomStatUseCase,
     val deleteCustomStat: DeleteCustomStatUseCase,
     val updateCustomStat: UpdateCustomStatUseCase,

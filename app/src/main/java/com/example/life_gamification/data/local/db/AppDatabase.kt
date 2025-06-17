@@ -16,7 +16,7 @@ import com.example.life_gamification.data.local.entity.UserStatEntity
 
 @Database(
     entities = [UserEntity::class, UserStatEntity::class, UserDailyQuestsEntity::class, UserInventoryItemEntity::class],
-    version = 8
+    version = 16
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
@@ -34,7 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
                 Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "gamification.db"
+                    "gamification_v5.db"
                     //удалить потом то что снизу строка (очистка бд)
                 ).fallbackToDestructiveMigration(true)
                     .build().also { INSTANCE = it }

@@ -10,8 +10,12 @@ import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserStatEntity
 import com.example.life_gamification.data.repository.UserRepository
 import com.example.life_gamification.domain.usecase.StatusUseCases
+import com.example.life_gamification.presentation.Status.DeletionTarget.Stat
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -35,8 +39,9 @@ class StatusViewModel(
     private val _completedDailiesToday = mutableStateListOf<Int>()
     val completedDailiesToday: List<Int> get() = _completedDailiesToday
 
-    private val _user = mutableStateOf<UserEntity?>(null)
-    val user: State<UserEntity?> = _user
+    private val _user = MutableStateFlow<UserEntity?>(null)
+    val user: StateFlow<UserEntity?> = _user
+
     //Зачем: Это состояние будет отслеживаться в UI
     // — оно обновится, когда пользователь загрузится.
 
@@ -59,6 +64,15 @@ class StatusViewModel(
                 if (isToday(daily.lastCompletedDate)) {
                     _completedDailiesToday.add(daily.id)
                 }
+            }
+
+            val currentStats = useCases.getCustomStatList(userId) // добавь эту обёртку в usecase
+            val existingNames = currentStats.map { it.name }
+            val required = listOf("Здоровье", "Сила", "Интеллект")
+            val missing = required.filterNot { it in existingNames }
+
+            if (missing.isNotEmpty()) {
+                missing.forEach { useCases.addCustomStat(userId, it, 0) }
             }
         }
     }
@@ -184,6 +198,10 @@ class StatusViewModel(
     }
 
 
-
+    fun reloadUser() {
+        viewModelScope.launch {
+            _user.value = userRepository.getUserById(userId)
+        }
+    }
 
 }

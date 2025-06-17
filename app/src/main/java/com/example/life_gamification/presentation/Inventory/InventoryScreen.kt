@@ -23,17 +23,29 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.life_gamification.data.local.db.AppDatabase
 import com.example.life_gamification.domain.repository.UserInventoryRepositories.UserInventoryRepositoryImpl
+import com.example.life_gamification.domain.usecase.ItemEffectHandler
+
 
 
 @Composable
 fun InventoryScreen(
     userId: String,
     viewModel: InventoryViewModel = viewModel(
-        factory = InventoryViewModelFactory(
-            repository = UserInventoryRepositoryImpl(
-                dao = AppDatabase.getDatabase(LocalContext.current).inventoryDao()
+        factory = run {
+            val context = LocalContext.current
+            val db = AppDatabase.getDatabase(context)
+
+            InventoryViewModelFactory(
+                repository = UserInventoryRepositoryImpl(
+                    dao = db.inventoryDao()
+                ),
+                userDao = db.userDao(),
+                effectHandler = ItemEffectHandler(
+                    userDao = db.userDao(),
+                    statDao = db.userStatDao()
+                )
             )
-        )
+        }
     )
 ) {
     val items by viewModel.userItems.collectAsState()

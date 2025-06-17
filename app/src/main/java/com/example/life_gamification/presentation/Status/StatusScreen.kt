@@ -47,7 +47,9 @@ fun StatusScreen(
     //диалоговое окно характеристик
     var showAddStatDialog by remember { mutableStateOf(false) }
     var newStatName by remember { mutableStateOf("") }
-    val user = viewModel.user.value
+    val user by viewModel.user.collectAsState()
+
+
 
     //диалоговое окно ежедневок
     var showAddDailyDialog by remember { mutableStateOf(false) }
@@ -140,14 +142,16 @@ fun StatusScreen(
                                         Text("+", color = Color.White)
                                     }
                                 }
-
-                                IconButton(onClick = {
-                                    deletionTarget = DeletionTarget.Stat(
-                                        name = stat.name,
-                                        onConfirm = { viewModel.deleteStat(stat) }
-                                    )
-                                }) {
-                                    Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
+                                val undeletableStats = listOf("Здоровье", "Сила", "Интеллект")
+                                if (stat.name !in undeletableStats) {
+                                    IconButton(onClick = {
+                                        deletionTarget = DeletionTarget.Stat(
+                                            name = stat.name,
+                                            onConfirm = { viewModel.deleteStat(stat) }
+                                        )
+                                    }) {
+                                        Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
+                                    }
                                 }
                             }
                         }

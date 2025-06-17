@@ -14,6 +14,7 @@ import com.example.life_gamification.domain.usecase.DailyUseCase.GetCustomDailyU
 import com.example.life_gamification.domain.usecase.DailyUseCase.UpdateDailyQuestUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.AddCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.DeleteCustomStatUseCase
+import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatListUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.GetCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatsUseCase.UpdateCustomStatUseCase
 import com.example.life_gamification.domain.usecase.StatusUseCases
@@ -44,6 +45,7 @@ class StatusViewModelFactory(
 
             val useCases = StatusUseCases(
                 getCustomStat = GetCustomStatUseCase(statDao),
+                getCustomStatList = GetCustomStatListUseCase(statDao),
                 addCustomStat = AddCustomStatUseCase(statRepo),
                 deleteCustomStat = DeleteCustomStatUseCase(statRepo),
                 updateCustomStat = UpdateCustomStatUseCase(statRepo),

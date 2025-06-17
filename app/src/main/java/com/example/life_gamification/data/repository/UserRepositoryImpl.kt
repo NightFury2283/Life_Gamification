@@ -10,4 +10,5 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
     override suspend fun updateUser(user: UserEntity) {
         userDao.update(user)
     }
+
 }

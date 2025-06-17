@@ -11,9 +11,6 @@ data class UserEntity(
     var level: Int = 1,
     var experience: Int = 0,
     var money: Int = 100,
-    var health: Int = 0,
-    var intellect: Int = 0,
-    var strength: Int = 0,
     val lastStatBonusDate: Long = 0L,
     val lastLoginTime: Long = System.currentTimeMillis()
 )

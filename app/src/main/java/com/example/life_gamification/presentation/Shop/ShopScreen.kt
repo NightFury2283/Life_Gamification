@@ -36,8 +36,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.life_gamification.data.local.db.AppDatabase
 import com.example.life_gamification.data.local.entity.UserInventoryItemEntity
 import com.example.life_gamification.domain.repository.UserInventoryRepositories.UserInventoryRepositoryImpl
+import com.example.life_gamification.domain.usecase.ItemEffectHandler
 import com.example.life_gamification.presentation.Inventory.InventoryViewModel
 import com.example.life_gamification.presentation.Inventory.InventoryViewModelFactory
+import com.example.life_gamification.presentation.Status.StatusViewModel
 import com.example.life_gamification.presentation.common.ConfirmDialog
 
 enum class Category(val label: String) {
@@ -56,18 +58,29 @@ data class ShopItem(
     val type: String // <- это пойдёт в поле type (например: "buff", "stat", "chest")
 )
 
-
 @Composable
 fun ShopScreen(
     userId: String,
+    statusViewModel: StatusViewModel,
     viewModel: InventoryViewModel = viewModel(
-        factory = InventoryViewModelFactory(
-            repository = UserInventoryRepositoryImpl(
-                dao = AppDatabase.getDatabase(LocalContext.current).inventoryDao()
+        factory = run {
+            val context = LocalContext.current
+            val db = AppDatabase.getDatabase(context)
+
+            InventoryViewModelFactory(
+                repository = UserInventoryRepositoryImpl(
+                    dao = db.inventoryDao()
+                ),
+                userDao = db.userDao(),
+                effectHandler = ItemEffectHandler(
+                    userDao = db.userDao(),
+                    statDao = db.userStatDao()
+                )
             )
-        )
+        }
     )
 ) {
+
     val context = LocalContext.current
 
     // Загрузить монеты при запуске
@@ -172,6 +185,9 @@ fun ShopScreen(
                                 isConsumed = false
                             )
                         )
+                        viewModel.spendCoins(userId, item.price, statusViewModel)
+                        statusViewModel.reloadUser()
+
                         selectedItemToBuy = null
                     },
                     onDismiss = {
