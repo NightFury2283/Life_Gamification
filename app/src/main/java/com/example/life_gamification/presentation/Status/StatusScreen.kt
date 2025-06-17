@@ -60,7 +60,9 @@ fun StatusScreen(
 
     //кол-во улучшений хар-ик
     val statPoints by viewModel.statPoints
-
+    LaunchedEffect(Unit) {
+        viewModel.reloadUser() // Загружаем данные при первом открытии
+    }
 
     Box(
         modifier = Modifier
