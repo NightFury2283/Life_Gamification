@@ -16,5 +16,5 @@ interface UserDao {
     suspend fun getUserById(userId: String): UserEntity?
 
     @Update
-    suspend fun update(user: UserEntity)
+    suspend fun updateUser(user: UserEntity)
 }

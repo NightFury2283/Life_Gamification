@@ -1,6 +1,5 @@
 package com.example.life_gamification.domain.usecase
 
-import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
 import com.example.life_gamification.domain.usecase.DailyUseCase.AddCustomDailyUseCase
 import com.example.life_gamification.domain.usecase.DailyUseCase.DeleteCustomDailyUseCase
 import com.example.life_gamification.domain.usecase.DailyUseCase.GetCustomDailyListUseCase

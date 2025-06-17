@@ -44,16 +44,12 @@ fun SignInScreen(
             onClick = onSignInClick,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                //backgroundColor = Color.White
             ),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
         ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.ic_google_logo),
-//                contentDescription = "Google Logo"
-//            )
+
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = "Войти через Google",

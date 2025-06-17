@@ -52,10 +52,10 @@ data class ShopItem(
     val id: String,
     val name: String,
     val description: String,
-    val effectValue: String?, // <- это пойдёт в поле effectValue
+    val effectValue: String?,
     val price: Int,
     val category: Category,
-    val type: String // <- это пойдёт в поле type (например: "buff", "stat", "chest")
+    val type: String
 )
 
 @Composable
@@ -74,7 +74,8 @@ fun ShopScreen(
                 userDao = db.userDao(),
                 effectHandler = ItemEffectHandler(
                     userDao = db.userDao(),
-                    statDao = db.userStatDao()
+                    statDao = db.userStatDao(),
+                    inventoryDao = db.inventoryDao()
                 )
             )
         }

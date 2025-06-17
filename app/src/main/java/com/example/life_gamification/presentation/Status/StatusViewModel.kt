@@ -10,12 +10,9 @@ import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserStatEntity
 import com.example.life_gamification.data.repository.UserRepository
 import com.example.life_gamification.domain.usecase.StatusUseCases
-import com.example.life_gamification.presentation.Status.DeletionTarget.Stat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -42,8 +39,7 @@ class StatusViewModel(
     private val _user = MutableStateFlow<UserEntity?>(null)
     val user: StateFlow<UserEntity?> = _user
 
-    //Зачем: Это состояние будет отслеживаться в UI
-    // — оно обновится, когда пользователь загрузится.
+
 
 
 
@@ -53,7 +49,25 @@ class StatusViewModel(
 
     init {
         viewModelScope.launch {
-            _user.value = userRepository.getUserById(userId)
+            _user.value = userRepository.getUserById(userId)?.let { user ->
+                val now = System.currentTimeMillis()
+                val needsReset = (user.expMultiplierExpiry < now && user.expMultiplier != 1.0) ||
+                        (user.coinsMultiplierExpiry < now && user.coinsMultiplier != 1.0)
+
+                // сброс баффов если прошло 24 часа
+                if (needsReset) {
+                    user.copy(
+                        expMultiplier = 1.0,
+                        expMultiplierExpiry = 0L,
+                        coinsMultiplier = 1.0,
+                        coinsMultiplierExpiry = 0L
+                    ).also { updatedUser ->
+                        userRepository.updateUser(updatedUser)
+                    }
+                } else {
+                    user
+                }
+            }
             if (!isToday(_user.value?.lastLoginTime ?: 0L)) {
                 _statPoints.value = 0 // сбросить накопленные очки
             }
@@ -66,7 +80,7 @@ class StatusViewModel(
                 }
             }
 
-            val currentStats = useCases.getCustomStatList(userId) // добавь эту обёртку в usecase
+            val currentStats = useCases.getCustomStatList(userId)
             val existingNames = currentStats.map { it.name }
             val required = listOf("Здоровье", "Сила", "Интеллект")
             val missing = required.filterNot { it in existingNames }
@@ -113,30 +127,21 @@ class StatusViewModel(
 
     fun setDailyCompletedToday(daily: UserDailyQuestsEntity, isCompleted: Boolean) {
         viewModelScope.launch {
-            val currentUser = _user.value ?: return@launch
+            _user.value ?: return@launch
 
-            if (isCompleted && !_completedDailiesToday.contains(daily.id)) {
+
+            if (isCompleted) {
                 _completedDailiesToday.add(daily.id)
                 checkAllDailiesCompleted()
+                addExperience(daily.addXp)
 
-                // Добавляем опыт
-                val updatedUser = currentUser.copy(experience = currentUser.experience + daily.addXp)
-                userRepository.updateUser(updatedUser)
-                _user.value = updatedUser
-
-                // Обновляем дату выполнения
+                //обновляем дату выполнения
                 val updatedDaily = daily.copy(lastCompletedDate = System.currentTimeMillis())
                 useCases.updateDaily(updatedDaily)
-
-            } else if (!isCompleted && _completedDailiesToday.contains(daily.id)) {
+            } else {
                 _completedDailiesToday.remove(daily.id)
+                addExperience(-daily.addXp)
 
-                // Убираем опыт
-                val updatedUser = currentUser.copy(experience = (currentUser.experience - daily.addXp).coerceAtLeast(0))
-                userRepository.updateUser(updatedUser)
-                _user.value = updatedUser
-
-                // Сбрасываем дату выполнения
                 val updatedDaily = daily.copy(lastCompletedDate = 0L)
                 useCases.updateDaily(updatedDaily)
             }
@@ -144,11 +149,25 @@ class StatusViewModel(
     }
 
 
-
-    fun addExperience(amount: Int) {
+    //добавление монет и опыта с применением множителей. (может пригодится для задач пользователя)
+    fun addExperience(baseXp: Int) {
         viewModelScope.launch {
+            val multiplier = getCurrentExpMultiplier()
+            val xpToAdd = (baseXp * multiplier).toInt()
             _user.value?.let { user ->
-                val updatedUser = user.copy(experience = (user.experience + amount).coerceAtLeast(0))
+                val updatedUser = user.copy(experience = user.experience + xpToAdd)
+                userRepository.updateUser(updatedUser)
+                _user.value = updatedUser
+            }
+        }
+    }
+    //на будущее (для задач игрока)
+    fun addCoins(baseCoins: Int) {
+        viewModelScope.launch {
+            val multiplier = getCurrentCoinsMultiplier()
+            val coinsToAdd = (baseCoins * multiplier).toInt()
+            _user.value?.let { user ->
+                val updatedUser = user.copy(money = user.money + coinsToAdd)
                 userRepository.updateUser(updatedUser)
                 _user.value = updatedUser
             }
@@ -197,11 +216,41 @@ class StatusViewModel(
         }
     }
 
+    // узнаём какой у нас сейчас множитель монет и опыта
+    private suspend fun getCurrentExpMultiplier(): Double {
+        val user = _user.value ?: return 1.0
+        return if (user.expMultiplierExpiry > System.currentTimeMillis()) {
+            user.expMultiplier
+        } else {
+            1.0
+        }
+    }
+
+    private suspend fun getCurrentCoinsMultiplier(): Double {
+        val user = _user.value ?: return 1.0
+        return if (user.coinsMultiplierExpiry > System.currentTimeMillis()) {
+            user.coinsMultiplier
+        } else {
+            1.0
+        }
+    }
+
 
     fun reloadUser() {
         viewModelScope.launch {
             _user.value = userRepository.getUserById(userId)
         }
+    }
+
+    //методы для проверки есть ли у пользователя множители сейчас. Для UI
+    fun hasActiveExpMultiplier(): Boolean {
+        val user = _user.value ?: return false
+        return user.expMultiplierExpiry > System.currentTimeMillis()
+    }
+
+    fun hasActiveCoinsMultiplier(): Boolean {
+        val user = _user.value ?: return false
+        return user.coinsMultiplierExpiry > System.currentTimeMillis()
     }
 
 }

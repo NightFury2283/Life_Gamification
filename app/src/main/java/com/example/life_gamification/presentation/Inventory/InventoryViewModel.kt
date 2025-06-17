@@ -8,9 +8,11 @@ import com.example.life_gamification.data.local.entity.UserInventoryItemEntity
 import com.example.life_gamification.domain.repository.UserInventoryRepositories.UserInventoryRepository
 import com.example.life_gamification.domain.usecase.ItemEffectHandler
 import com.example.life_gamification.presentation.Status.StatusViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class InventoryViewModel(
     private val repository: UserInventoryRepository,
@@ -57,10 +59,26 @@ class InventoryViewModel(
             val user = userDao.getUserById(userId) ?: return@launch
             if (user.money >= amount) {
                 user.money -= amount
-                userDao.update(user)
+                userDao.updateUser(user)
                 _userCoins.value = user.money
-                statusViewModel?.reloadUser() // 💡 Обновляем статус
+                statusViewModel?.reloadUser() // обновляем статус экран
             }
+        }
+    }
+
+    suspend fun openChest(item: UserInventoryItemEntity): List<ItemEffectHandler.RewardItem> {
+        return withContext(Dispatchers.IO) {
+            // открываем сундук и получаем награды
+            val rewards = effectHandler.openChestAndGetRewards(item.userId, item.effectValue ?: "")
+
+            // помечаем сундук как использованный
+            repository.consumeItem(item)
+
+            // обновляем инвентарь
+            loadInventory(item.userId)
+
+            // возвращаем награды для отображения
+            rewards
         }
     }
 

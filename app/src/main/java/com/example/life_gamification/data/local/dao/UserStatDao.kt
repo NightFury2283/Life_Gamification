@@ -13,10 +13,10 @@ import kotlinx.coroutines.flow.Flow
 interface UserStatDao {
 
     @Query("SELECT * FROM user_stats WHERE userId = :userId")
-    fun getStatsFlow(userId: String): Flow<List<UserStatEntity>> // <-- ДЛЯ UI
+    fun getStatsFlow(userId: String): Flow<List<UserStatEntity>>
 
     @Query("SELECT * FROM user_stats WHERE userId = :userId")
-    suspend fun getStats(userId: String): List<UserStatEntity> // <-- МОЖЕТ ОСТАТЬСЯ для других задач
+    suspend fun getStats(userId: String): List<UserStatEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addStat(stat: UserStatEntity)

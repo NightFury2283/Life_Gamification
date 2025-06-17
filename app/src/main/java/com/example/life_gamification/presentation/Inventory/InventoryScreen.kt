@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
@@ -14,6 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -24,8 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.life_gamification.data.local.db.AppDatabase
 import com.example.life_gamification.domain.repository.UserInventoryRepositories.UserInventoryRepositoryImpl
 import com.example.life_gamification.domain.usecase.ItemEffectHandler
-
-
+import kotlinx.coroutines.launch
 
 @Composable
 fun InventoryScreen(
@@ -42,36 +46,54 @@ fun InventoryScreen(
                 userDao = db.userDao(),
                 effectHandler = ItemEffectHandler(
                     userDao = db.userDao(),
-                    statDao = db.userStatDao()
+                    statDao = db.userStatDao(),
+                    inventoryDao = db.inventoryDao()
                 )
             )
         }
     )
 ) {
     val items by viewModel.userItems.collectAsState()
+    var showChestRewards by remember { mutableStateOf(false) }
+    var chestRewards by remember { mutableStateOf<List<ItemEffectHandler.RewardItem>>(emptyList()) }
+    val coroutineScope = rememberCoroutineScope()
 
     // Загружаем инвентарь при первом запуске
     LaunchedEffect(userId) {
         viewModel.loadInventory(userId)
     }
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
+    // Диалог с наградами сундуков
+    if (showChestRewards) {
+        AlertDialog(
+            onDismissRequest = { showChestRewards = false },
+            title = { Text("Вы получили:") },
+            text = {
+                Column {
+                    chestRewards.forEach { reward ->
+                        Text("- ${reward.name}: ${reward.description}")
+                    }
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showChestRewards = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
-            text = "Inventory",
+            text = "Инвентарь",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
         )
 
-        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(items.filter { !it.isConsumed }) { item ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 6.dp)
-                ) {
+                Card(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(item.name, fontWeight = FontWeight.Bold)
                         Text(item.description)
@@ -79,10 +101,17 @@ fun InventoryScreen(
                         Text("Эффект: ${item.effectValue}")
                         Button(
                             onClick = {
-                                viewModel.consumeItem(item)
+                                if (item.type == "chest") {
+                                    coroutineScope.launch {
+                                        chestRewards = viewModel.openChest(item)
+                                        showChestRewards = true
+                                    }
+                                } else {
+                                    viewModel.consumeItem(item)
+                                }
                             }
                         ) {
-                            Text("Использовать")
+                            Text(if (item.type == "chest") "Открыть" else "Использовать")
                         }
                     }
                 }

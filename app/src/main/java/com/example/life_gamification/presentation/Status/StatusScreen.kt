@@ -25,6 +25,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.life_gamification.presentation.common.ConfirmDialog
 
+import androidx.compose.ui.res.painterResource
+import com.example.life_gamification.R
+
 
 @Composable
 fun StatusScreen(
@@ -98,12 +101,51 @@ fun StatusScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Уровень: ${user?.level ?: "—"}", color = Color.White, fontWeight = FontWeight.Bold)
-                        Text("Опыт: ${user?.experience ?: 0} XP", color = Color.White)
-                        Text("Монеты: ${user?.money ?: 0}", color = Color.White)
+                        Text("Уровень: ${user?.level ?: "—"}",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold)
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Опыт: ${user?.experience ?: 0} XP",
+                                color = Color.White,
+                                modifier = Modifier.weight(1f))
+
+                            if (viewModel.hasActiveExpMultiplier()) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("x${user?.expMultiplier}",
+                                        color = Color.Yellow,
+                                        fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_exp),
+                                        contentDescription = "Множитель опыта",
+                                        tint = Color.Yellow,
+                                        modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
+
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("Монеты: ${user?.money ?: 0}",
+                                color = Color.White,
+                                modifier = Modifier.weight(1f))
+
+                            if (viewModel.hasActiveCoinsMultiplier()) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("x${user?.coinsMultiplier}",
+                                        color = Color.Yellow,
+                                        fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_coin),
+                                        contentDescription = "Множитель монет",
+                                        tint = Color.Yellow,
+                                        modifier = Modifier.size(16.dp))
+                                }
+                            }
+                        }
                     }
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 ExpandableSection(

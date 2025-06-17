@@ -16,7 +16,7 @@ interface UserDailyQuestsDao {
     fun getDailyQuestsFlow(userId: String): Flow<List<UserDailyQuestsEntity>>
 
     @Query("SELECT * FROM user_daily WHERE userId = :userId")
-    suspend fun getDailyQuests(userId: String): List<UserDailyQuestsEntity> // <-- МОЖЕТ ОСТАТЬСЯ для других задач
+    suspend fun getDailyQuests(userId: String): List<UserDailyQuestsEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun addDailyQuest(daily: UserDailyQuestsEntity)

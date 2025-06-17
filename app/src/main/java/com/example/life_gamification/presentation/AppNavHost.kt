@@ -58,7 +58,7 @@ import kotlinx.coroutines.launch
 fun AppNavHost(appContext: Context) {
     val navController = rememberNavController()
 
-    // ======= АВТОРИЗАЦИЯ =======
+    //авторизация
     val gso = remember {
         GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken("461383006220-j22in4hv8iegblm3lfbn3b5rh3o6cs9s.apps.googleusercontent.com")
@@ -110,7 +110,7 @@ fun AppNavHost(appContext: Context) {
 
 
 
-    // ======= Навигация =======
+    // навигация
     LaunchedEffect(loginState) {
         if (loginState?.isSuccess == true) {
             navController.navigate("main") {
@@ -127,7 +127,7 @@ fun AppNavHost(appContext: Context) {
             })
         }
 
-        // Это обёртка, которая показывает нижнее меню и экран
+        //показывает нижнее меню и экран
         composable("main") {
             if (userId != null) {
                 MainScreen(navController = navController, userId = userId!!)

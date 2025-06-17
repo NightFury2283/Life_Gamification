@@ -8,7 +8,7 @@ class UserRepositoryImpl(private val userDao: UserDao) : UserRepository {
         return userDao.getUserById(userId)
     }
     override suspend fun updateUser(user: UserEntity) {
-        userDao.update(user)
+        userDao.updateUser(user)
     }
 
 }
