@@ -5,22 +5,28 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.life_gamification.data.local.dao.UserDao
 import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
 import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserStatEntity
+import com.example.life_gamification.data.local.entity.UserTaskEntity
 import com.example.life_gamification.data.repository.UserRepository
+import com.example.life_gamification.domain.repository.UserTasksRepository.UserTaskRepository
 import com.example.life_gamification.domain.usecase.StatusUseCases
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.collect
 
 
 class StatusViewModel(
     private val userId: String,
     private val useCases: StatusUseCases,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userTaskRepository: UserTaskRepository,
+    private val userDao: UserDao
 ) : ViewModel() {
     //характеристики
     val stats: StateFlow<List<UserStatEntity>> =
@@ -49,6 +55,7 @@ class StatusViewModel(
 
     init {
         viewModelScope.launch {
+            loadTasks(userId)
             _user.value = userRepository.getUserById(userId)?.let { user ->
                 val now = System.currentTimeMillis()
                 val needsReset = (user.expMultiplierExpiry < now && user.expMultiplier != 1.0) ||
@@ -149,7 +156,7 @@ class StatusViewModel(
     }
 
 
-    //добавление монет и опыта с применением множителей. (может пригодится для задач пользователя)
+    //добавление монет и опыта с применением множителей
     fun addExperience(baseXp: Int) {
         viewModelScope.launch {
             val multiplier = getCurrentExpMultiplier()
@@ -161,7 +168,7 @@ class StatusViewModel(
             }
         }
     }
-    //на будущее (для задач игрока)
+
     fun addCoins(baseCoins: Int) {
         viewModelScope.launch {
             val multiplier = getCurrentCoinsMultiplier()
@@ -253,4 +260,68 @@ class StatusViewModel(
         return user.coinsMultiplierExpiry > System.currentTimeMillis()
     }
 
+
+
+    //методы для задач
+    private val _tasks = MutableStateFlow<List<UserTaskEntity>>(emptyList())
+    val tasks: StateFlow<List<UserTaskEntity>> = _tasks
+
+
+    fun loadTasks(userId: String) {
+        viewModelScope.launch {
+            userTaskRepository.getTasks(userId).collect { tasks ->
+                _tasks.value = tasks
+            }
+        }
+    }
+
+    fun addTask(name: String, xp: Int, coins: Int, dueDate: Long) {
+        viewModelScope.launch {
+            userTaskRepository.addTask(
+                UserTaskEntity(
+                    userId = userId,
+                    name = name,
+                    xpReward = xp,
+                    coinsReward = coins,
+                    dueDate = dueDate
+                )
+            )
+            loadTasks(userId)
+        }
+    }
+
+    fun completeTask(task: UserTaskEntity) {
+        viewModelScope.launch {
+            val updatedTask = task.copy(
+                isCompleted = true,
+                completionDate = System.currentTimeMillis()
+            )
+            userTaskRepository.updateTask(updatedTask)
+
+            val expMultiplier = getCurrentExpMultiplier()
+            val coinsMultiplier = getCurrentCoinsMultiplier()
+
+            val actualXp = (task.xpReward * expMultiplier).toInt()
+            val actualCoins = (task.coinsReward * coinsMultiplier).toInt()
+
+
+            _user.value?.let { user ->
+                val updatedUser = user.copy(
+                    experience = user.experience + actualXp,
+                    money = user.money + actualCoins
+                )
+                userRepository.updateUser(updatedUser)
+                _user.value = updatedUser
+            }
+
+            loadTasks(userId)
+        }
+    }
+
+    fun deleteTask(task: UserTaskEntity) {
+        viewModelScope.launch {
+            userTaskRepository.deleteTask(task)
+            loadTasks(userId)
+        }
+    }
 }

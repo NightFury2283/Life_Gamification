@@ -7,6 +7,8 @@ import com.example.life_gamification.data.local.db.AppDatabase
 import com.example.life_gamification.data.repository.UserRepositoryImpl
 import com.example.life_gamification.domain.repository.UserDailyRepositories.UserDailyRepositoryImpl
 import com.example.life_gamification.domain.repository.UserStatsRepositories.UserStatRepositoryImpl
+import com.example.life_gamification.domain.repository.UserTasksRepository.UserTaskRepository
+import com.example.life_gamification.domain.repository.UserTasksRepository.UserTaskRepositoryImpl
 import com.example.life_gamification.domain.usecase.DailyUseCase.AddCustomDailyUseCase
 import com.example.life_gamification.domain.usecase.DailyUseCase.DeleteCustomDailyUseCase
 import com.example.life_gamification.domain.usecase.DailyUseCase.GetCustomDailyListUseCase
@@ -41,6 +43,9 @@ class StatusViewModelFactory(
             val dailyDao = db.userDailyDao()
             val dailyRepoImpl = UserDailyRepositoryImpl(dailyDao)
 
+            val taskDao = db.userTaskDao()
+            val userTaskRepository = UserTaskRepositoryImpl(taskDao)
+
 
 
             val useCases = StatusUseCases(
@@ -59,7 +64,9 @@ class StatusViewModelFactory(
             return StatusViewModel(
                 userId = userId,
                 useCases = useCases,
-                userRepository = userRepo
+                userRepository = userRepo,
+                userTaskRepository = userTaskRepository,
+                userDao = userDao
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

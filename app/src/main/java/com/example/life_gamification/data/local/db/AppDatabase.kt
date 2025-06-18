@@ -8,20 +8,23 @@ import com.example.life_gamification.data.local.dao.UserDailyQuestsDao
 import com.example.life_gamification.data.local.dao.UserDao
 import com.example.life_gamification.data.local.dao.UserInventoryDao
 import com.example.life_gamification.data.local.dao.UserStatDao
+import com.example.life_gamification.data.local.dao.UserTaskDao
 import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
 import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserInventoryItemEntity
 import com.example.life_gamification.data.local.entity.UserStatEntity
+import com.example.life_gamification.data.local.entity.UserTaskEntity
 
 
 @Database(
-    entities = [UserEntity::class, UserStatEntity::class, UserDailyQuestsEntity::class, UserInventoryItemEntity::class],
-    version = 18
+    entities = [UserEntity::class, UserStatEntity::class, UserDailyQuestsEntity::class, UserInventoryItemEntity::class, UserTaskEntity::class],
+    version = 20
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun userStatDao(): UserStatDao
     abstract fun userDailyDao(): UserDailyQuestsDao
+    abstract fun userTaskDao(): UserTaskDao
     abstract fun inventoryDao(): UserInventoryDao
 
 
@@ -34,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
                 Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "gamification_v5.db"
+                    "gamification_v6.db"
                     //удалить потом то что снизу строка (очистка бд)
                 ).fallbackToDestructiveMigration(true)
                     .build().also { INSTANCE = it }

@@ -2,20 +2,49 @@ package com.example.life_gamification.presentation.Status
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -23,10 +52,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.life_gamification.presentation.common.ConfirmDialog
-
-import androidx.compose.ui.res.painterResource
 import com.example.life_gamification.R
+import com.example.life_gamification.presentation.common.ConfirmDialog
+import com.example.life_gamification.presentation.common.formatToDateString
+import com.example.life_gamification.presentation.common.formatToString
+import com.example.life_gamification.presentation.common.rememberDatePickerDialog
+import java.util.Date
 
 
 @Composable
@@ -66,6 +97,20 @@ fun StatusScreen(
     LaunchedEffect(Unit) {
         viewModel.reloadUser() // Загружаем данные при первом открытии
     }
+
+    //всё для задач
+    var showAddTaskDialog by remember { mutableStateOf(false) }
+    var newTaskName by remember { mutableStateOf("") }
+    var newTaskXp by remember { mutableStateOf("1") }
+    var newTaskCoins by remember { mutableStateOf("0") }
+    var selectedDate by remember { mutableStateOf<Date?>(null) }
+    val tasks by viewModel.tasks.collectAsState()
+
+    val datePickerDialog = rememberDatePickerDialog(
+        onDateSelected = { date ->
+            selectedDate = date
+        }
+    )
 
     Box(
         modifier = Modifier
@@ -273,13 +318,62 @@ fun StatusScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 ExpandableSection(
-                    title = "ЗАДАЧИ НА СЕГОДНЯ",
+                    title = "ЗАДАЧИ",
                     expanded = expandedTasks.value,
                     onToggle = { expandedTasks.value = !expandedTasks.value }
                 ) {
                     Column(modifier = Modifier.padding(8.dp)) {
-                        Text("Сделать домашку", color = Color.White)
-                        Text("Купить продукты", color = Color.White)
+                        tasks.forEach { task ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                            ) {
+                                Checkbox(
+                                    checked = task.isCompleted,
+                                    onCheckedChange = { isChecked ->
+                                        if (isChecked) viewModel.completeTask(task)
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = Color.White,
+                                        uncheckedColor = Color.White,
+                                        checkmarkColor = Color.Black
+                                    )
+                                )
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(task.name, color = Color.White)
+                                    Text(
+                                        "До: ${task.dueDate.formatToDateString()}",
+                                        color = Color.LightGray,
+                                        fontSize = 12.sp
+                                    )
+                                }
+
+                                Column(horizontalAlignment = Alignment.End) {
+                                    Text("+${task.xpReward} XP", color = Color.Green)
+                                    Text("+${task.coinsReward} монет", color = Color.Yellow)
+                                }
+
+                                IconButton(onClick = {
+                                    deletionTarget = DeletionTarget.Task(
+                                        name = task.name,
+                                        onConfirm = { viewModel.deleteTask(task) }
+                                    )
+                                }) {
+                                    Icon(Icons.Default.Delete, contentDescription = "Удалить", tint = Color.Red)
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = { showAddTaskDialog = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Добавить задачу")
+                        }
                     }
                 }
             }
@@ -374,11 +468,99 @@ fun StatusScreen(
                 }
             )
         }
+        if (showAddTaskDialog) {
+            AlertDialog(
+                onDismissRequest = {
+                    showAddTaskDialog = false
+                    newTaskName = ""
+                    newTaskXp = "1"
+                    newTaskCoins = "0"
+                    selectedDate = null
+                },
+                title = { Text("Добавить задачу") },
+                text = {
+                    Column {
+                        OutlinedTextField(
+                            value = newTaskName,
+                            onValueChange = { newTaskName = it },
+                            label = { Text("Название") }
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row {
+                            OutlinedTextField(
+                                value = newTaskXp,
+                                onValueChange = { if (it.all { c -> c.isDigit() }) newTaskXp = it },
+                                label = { Text("XP") },
+                                modifier = Modifier.weight(1f),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            OutlinedTextField(
+                                value = newTaskCoins,
+                                onValueChange = { if (it.all { c -> c.isDigit() }) newTaskCoins = it },
+                                label = { Text("Монеты") },
+                                modifier = Modifier.weight(1f),
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // Виджет выбора даты
+                        Button(
+                            onClick = { datePickerDialog.show() },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(selectedDate?.formatToString() ?: "Выберите дату")
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (newTaskName.isNotBlank() && selectedDate != null) {
+                                viewModel.addTask(
+                                    name = newTaskName,
+                                    xp = newTaskXp.toIntOrNull() ?: 1,
+                                    coins = newTaskCoins.toIntOrNull() ?: 0,
+                                    dueDate = selectedDate!!.time
+                                )
+                                showAddTaskDialog = false
+                                newTaskName = ""
+                                newTaskXp = "1"
+                                newTaskCoins = "0"
+                                selectedDate = null
+                            }
+                        },
+                        enabled = newTaskName.isNotBlank() && selectedDate != null // Добавлена проверка
+                    ) {
+                        Text("Добавить")
+                    }
+                },
+                dismissButton = {
+                    OutlinedButton(onClick = {
+                        showAddTaskDialog = false
+                        newTaskName = ""
+                        newTaskXp = "1"
+                        newTaskCoins = "0"
+                        selectedDate = null
+                    }) {
+                        Text("Отмена")
+                    }
+                }
+            )
+        }
+
         deletionTarget?.let { target ->
             val title = "Подтвердите удаление"
             val message = when (target) {
                 is DeletionTarget.Stat -> "Вы точно хотите удалить характеристику \"${target.name}\"?"
                 is DeletionTarget.Daily -> "Вы точно хотите удалить ежедневку \"${target.name}\"?"
+                is DeletionTarget.Task -> "Вы точно хотите удалить задачу \"${target.name}\"?" // Исправлено
             }
 
             ConfirmDialog(
@@ -393,10 +575,9 @@ fun StatusScreen(
                 }
             )
         }
-
-
     }
-}
+    }
+
 
 @Composable
 fun ExpandableSection(
