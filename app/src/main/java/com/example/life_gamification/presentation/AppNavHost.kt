@@ -57,6 +57,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppNavHost(appContext: Context) {
     val navController = rememberNavController()
+    val auth = FirebaseAuth.getInstance()
 
     //авторизация
     val gso = remember {
@@ -67,7 +68,7 @@ fun AppNavHost(appContext: Context) {
     }
     val googleSignInClient = remember { GoogleSignIn.getClient(appContext, gso) }
     var userId by remember { mutableStateOf<String?>(null) }
-    val viewModel = remember {
+    val authViewModel = remember {
         val firebaseAuth = FirebaseAuth.getInstance()
         val firebaseSource = FirebaseAuthSource(firebaseAuth)
         val repo = AuthRepositoryImpl(firebaseSource)
@@ -75,7 +76,7 @@ fun AppNavHost(appContext: Context) {
         AuthViewModel(useCase)
     }
 
-    val loginState by viewModel.loginState.observeAsState()
+    val loginState by authViewModel.loginState.observeAsState()
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -84,7 +85,7 @@ fun AppNavHost(appContext: Context) {
         try {
             val account = task.getResult(ApiException::class.java)
             account?.idToken?.let { token ->
-                viewModel.loginWithGoogle(token)
+                authViewModel.loginWithGoogle(token)
 
                 val user = UserEntity(
                     id = account.id!!,
@@ -123,6 +124,7 @@ fun AppNavHost(appContext: Context) {
     NavHost(navController = navController, startDestination = "sign_in") {
         composable("sign_in") {
             SignInScreen(onSignInClick = {
+                googleSignInClient.signOut()
                 launcher.launch(googleSignInClient.signInIntent)
             })
         }
@@ -130,7 +132,7 @@ fun AppNavHost(appContext: Context) {
         //показывает нижнее меню и экран
         composable("main") {
             if (userId != null) {
-                MainScreen(navController = navController, userId = userId!!)
+                MainScreen(navController = navController, userId = userId!!, authViewModel = authViewModel)
             } else {
                 Box(
                     modifier = Modifier
@@ -142,16 +144,33 @@ fun AppNavHost(appContext: Context) {
                 }
             }
         }
+
+        composable("sign_out") {
+            LaunchedEffect(Unit) {
+                auth.signOut()
+                googleSignInClient.signOut().addOnCompleteListener {
+                    userId = null
+                    authViewModel.clearLoginState()
+                    navController.navigate("sign_in") {
+                        popUpTo("sign_out") { inclusive = true }
+                    }
+                }
+            }
+        }
     }
 
 }
 @Composable
-fun MainScreen(navController: NavController, userId: String) {
+fun MainScreen(
+    navController: NavController,
+    userId: String,
+    authViewModel: AuthViewModel
+) {
     val statusViewModel: StatusViewModel = viewModel(
         factory = StatusViewModelFactory(
             context = LocalContext.current,
             userId = userId
-    )
+        )
     )
     val innerNavController = rememberNavController()
 
@@ -178,7 +197,7 @@ fun MainScreen(navController: NavController, userId: String) {
                         InventoryScreen(userId = userId)
                     }
                     composable(BottomNavScreen.Settings.route) {
-                        SettingsScreen()
+                        SettingsScreen(navController = navController, authViewModel = authViewModel)
                     }
                 }
             }
