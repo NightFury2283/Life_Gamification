@@ -11,5 +11,5 @@ class UserTaskRepositoryImpl(private val dao: UserTaskDao) : UserTaskRepository 
     override suspend fun deleteTask(task: UserTaskEntity) = dao.deleteTask(task)
     override fun getTasks(userId: String): Flow<List<UserTaskEntity>> = dao.getTasks(userId)
     override suspend fun getTodayTasks(userId: String, endOfDay: Long): List<UserTaskEntity> =
-        dao.getTodayTasks(userId, endOfDay)
+        dao.getTasksByDate(userId, endOfDay)
 }

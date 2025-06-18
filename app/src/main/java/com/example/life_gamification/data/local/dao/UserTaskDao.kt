@@ -23,5 +23,5 @@ interface UserTaskDao {
     fun getTasks(userId: String): Flow<List<UserTaskEntity>>
 
     @Query("SELECT * FROM user_tasks WHERE userId = :userId AND dueDate <= :endOfDay AND isCompleted = 0")
-    suspend fun getTodayTasks(userId: String, endOfDay: Long): List<UserTaskEntity>
+    suspend fun getTasksByDate(userId: String, endOfDay: Long): List<UserTaskEntity>
 }

@@ -169,7 +169,7 @@ fun MainScreen(navController: NavController, userId: String) {
                         StatusScreen(navController = innerNavController, userId = userId)
                     }
                     composable(BottomNavScreen.Tasks.route) {
-                        TasksScreen()
+                        TasksScreen(userId = userId)
                     }
                     composable(BottomNavScreen.Shop.route) {
                         ShopScreen(userId = userId, statusViewModel = statusViewModel)
