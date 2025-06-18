@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -27,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -110,8 +112,18 @@ fun ShopScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(bottom = 64.dp)
-    ) {
+            .background(
+                Brush.verticalGradient(
+                    listOf(
+                        Color(0xFF042C84),
+                        Color(0xFF4813B2),
+                        Color(0xFF218DDB)
+                    )
+                )
+            )
+            .statusBarsPadding()
+    )
+    {
         Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
 
             Text(
