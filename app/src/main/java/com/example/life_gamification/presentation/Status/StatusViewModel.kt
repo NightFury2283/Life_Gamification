@@ -6,11 +6,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
 import com.example.life_gamification.data.local.dao.UserDao
 import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
+import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserStatEntity
 import com.example.life_gamification.data.repository.UserRepository
 import com.example.life_gamification.domain.repository.UserTasksRepository.UserTaskRepository
 import com.example.life_gamification.domain.usecase.StatusUseCases
 import com.example.life_gamification.presentation.Base.BaseTaskViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -44,6 +46,11 @@ class StatusViewModel(
     //состояние - сколько осталось очков распределения
     private val _statPoints = mutableStateOf(0)
     val statPoints: State<Int> get() = _statPoints
+
+
+    //отслеживаем уровень игрока
+    private val _levelUpEvent = MutableStateFlow(false)
+    val levelUpEvent: StateFlow<Boolean> = _levelUpEvent
 
     init {
         viewModelScope.launch {
@@ -154,9 +161,15 @@ class StatusViewModel(
             val multiplier = getCurrentExpMultiplier()
             val xpToAdd = (baseXp * multiplier).toInt()
             _user.value?.let { user ->
-                val updatedUser = user.copy(experience = user.experience + xpToAdd)
+                var updatedUser = user.copy(experience = user.experience + xpToAdd)
+                updatedUser = checkLevelUp(updatedUser)
                 userRepository.updateUser(updatedUser)
                 _user.value = updatedUser
+
+                if (updatedUser.level > user.level) {
+                    _levelUpEvent.value = true
+                    user.copy(level = updatedUser.level)
+                }
             }
         }
     }
@@ -232,6 +245,51 @@ class StatusViewModel(
         return user.coinsMultiplierExpiry > System.currentTimeMillis()
     }
 
+    companion object { //кол-во опыта для уровенй
+        private val LEVEL_REQUIREMENTS = mapOf(
+            1 to 0,
+            2 to 10,
+            3 to 15,
+            4 to 30,
+            5 to 50
+        )
+        val MAX_LEVEL = LEVEL_REQUIREMENTS.keys.maxOrNull() ?: 5
+    }
 
+    //методы для повышения уровня
+    private suspend fun checkLevelUp(user: UserEntity): UserEntity {
+        var currentLevel = user.level
+        var currentExp = user.experience
+
+        //максимальный достижимый уровень с текущим опытом
+        val newLevel = LEVEL_REQUIREMENTS
+            .filter { it.value <= currentExp }
+            .keys
+            .maxOrNull() ?: currentLevel
+        return if (newLevel > currentLevel) {
+            user.copy(level = newLevel)
+        } else {
+            user
+        }
+    }
+    fun resetLevelUpEvent() {
+        _levelUpEvent.value = false
+    }
+
+    //для прогресс бара
+    fun getLevelProgress(): Pair<Int, Int> {
+        val user = _user.value ?: return 0 to 0
+        val currentLevel = user.level
+
+        return if (currentLevel >= MAX_LEVEL) {
+            100 to 100
+        } else {
+            val currentExp = user.experience
+            val expForCurrentLevel = LEVEL_REQUIREMENTS[currentLevel] ?: 0
+            val expForNextLevel = LEVEL_REQUIREMENTS[currentLevel + 1] ?: 0
+
+            (currentExp - expForCurrentLevel) to (expForNextLevel - expForCurrentLevel)
+        }
+    }
 
 }

@@ -30,6 +30,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -113,6 +114,17 @@ fun StatusScreen(
         }
     )
 
+    //для уровня и прогресс бара
+    val levelUpEvent by viewModel.levelUpEvent.collectAsState()
+    val (currentExp, nextLevelExp) = viewModel.getLevelProgress()
+    val progress = if (nextLevelExp > 0) currentExp.toFloat() / nextLevelExp.toFloat() else 0f
+
+
+    if (levelUpEvent) {
+        LaunchedEffect(Unit) {
+            viewModel.resetLevelUpEvent()
+        }
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -149,9 +161,40 @@ fun StatusScreen(
                     colors = CardDefaults.cardColors(containerColor = Color.Transparent),
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Уровень: ${user?.level ?: "—"}",
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "Уровень: ${user?.level ?: "—"}",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                                if (user?.isMaxLevel == true) {
+                                    Text("MAX", color = Color.Yellow)
+                                }
+
+                        }
+
+                        //прогресс-бар уровня
+                        LinearProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .padding(vertical = 4.dp),
+                            color = Color(0xFF4CAF50),
+                            trackColor = Color(0xFF2E7D32)
+                        )
+
+                        Text(
+                            text = if (user?.isMaxLevel == true) {
+                                "Максимальный уровень достигнут!"
+                            } else {
+                                "Опыт: $currentExp/$nextLevelExp"
+                            },
                             color = Color.White,
-                            fontWeight = FontWeight.Bold)
+                            fontSize = 12.sp,
+                            modifier = Modifier.align(Alignment.End))
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("Опыт: ${user?.experience ?: 0} XP",
