@@ -74,8 +74,7 @@ class StatusViewModelTest {
             userId = userId,
             useCases = mockStatusUseCases,
             userRepository = mockUserRepo,
-            userTaskRepository = mockUserTaskRepo,
-            userDao = mockUserDao
+            userTaskRepository = mockUserTaskRepo
         )
 
         testScope.advanceUntilIdle()

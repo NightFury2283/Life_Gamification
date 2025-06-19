@@ -4,11 +4,13 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.viewModelScope
-import com.example.life_gamification.data.local.dao.UserDao
+import com.example.life_gamification.AppConstants
 import com.example.life_gamification.data.local.entity.UserDailyQuestsEntity
 import com.example.life_gamification.data.local.entity.UserEntity
 import com.example.life_gamification.data.local.entity.UserStatEntity
 import com.example.life_gamification.data.repository.UserRepository
+import com.example.life_gamification.domain.Configs.LevelConfig
+import com.example.life_gamification.domain.Configs.StatusConfig
 import com.example.life_gamification.domain.repository.UserTasksRepository.UserTaskRepository
 import com.example.life_gamification.domain.usecase.StatusUseCases
 import com.example.life_gamification.presentation.Base.BaseTaskViewModel
@@ -23,8 +25,7 @@ class StatusViewModel(
     userId: String,
     private val useCases: StatusUseCases,
     userRepository: UserRepository,
-    userTaskRepository: UserTaskRepository,
-    private val userDao: UserDao
+    userTaskRepository: UserTaskRepository
 ) : BaseTaskViewModel(userId, userTaskRepository, userRepository) {
     //характеристики
     val stats: StateFlow<List<UserStatEntity>> =
@@ -86,7 +87,7 @@ class StatusViewModel(
 
             val currentStats = useCases.getCustomStatList(userId)
             val existingNames = currentStats.map { it.name }
-            val required = listOf("Здоровье", "Сила", "Интеллект")
+            val required = StatusConfig.REQUIRED_STATS
             val missing = required.filterNot { it in existingNames }
 
             if (missing.isNotEmpty()) {
@@ -111,7 +112,7 @@ class StatusViewModel(
 
 
     //методы ежедневок
-    fun addDaily(name: String, addXp: Int = 1){
+    fun addDaily(name: String, addXp: Int = AppConstants.BASE_DAILY_XP){
         viewModelScope.launch {
             useCases.addCustomDaily(userId, name, addXp)
         }
@@ -188,7 +189,7 @@ class StatusViewModel(
         val lastBonusDate = _user.value?.lastStatBonusDate ?: 0L
 
         if (allCompleted && !isToday(lastBonusDate)) {
-            _statPoints.value = 3
+            _statPoints.value = StatusConfig.STAT_POINTS_REWARD
 
             // обновляем дату последней выдачи
             val updatedUser = _user.value?.copy(lastStatBonusDate = today)
@@ -231,16 +232,6 @@ class StatusViewModel(
         return user.coinsMultiplierExpiry > System.currentTimeMillis()
     }
 
-    companion object { //кол-во опыта для уровенй
-        private val LEVEL_REQUIREMENTS = mapOf(
-            1 to 0,
-            2 to 10,
-            3 to 15,
-            4 to 30,
-            5 to 50
-        )
-        val MAX_LEVEL = LEVEL_REQUIREMENTS.keys.maxOrNull() ?: 5
-    }
 
     //методы для повышения уровня
     private fun checkLevelUp(user: UserEntity): UserEntity {
@@ -248,7 +239,7 @@ class StatusViewModel(
         var currentExp = user.experience
 
         //максимальный достижимый уровень с текущим опытом
-        val newLevel = LEVEL_REQUIREMENTS
+        val newLevel = LevelConfig.REQUIREMENTS
             .filter { it.value <= currentExp }
             .keys
             .maxOrNull() ?: currentLevel
@@ -267,12 +258,12 @@ class StatusViewModel(
         val user = _user.value ?: return 0 to 0
         val currentLevel = user.level
 
-        return if (currentLevel >= MAX_LEVEL) {
+        return if (currentLevel >= LevelConfig.MAX_LEVEL) {
             100 to 100
         } else {
             val currentExp = user.experience
-            val expForCurrentLevel = LEVEL_REQUIREMENTS[currentLevel] ?: 0
-            val expForNextLevel = LEVEL_REQUIREMENTS[currentLevel + 1] ?: 0
+            val expForCurrentLevel = LevelConfig.REQUIREMENTS[currentLevel] ?: 0
+            val expForNextLevel = LevelConfig.REQUIREMENTS[currentLevel + 1] ?: 0
 
             (currentExp - expForCurrentLevel) to (expForNextLevel - expForCurrentLevel)
         }

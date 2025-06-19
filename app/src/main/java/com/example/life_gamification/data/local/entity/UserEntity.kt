@@ -2,7 +2,7 @@ package com.example.life_gamification.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.example.life_gamification.presentation.Status.StatusViewModel
+import com.example.life_gamification.domain.Configs.LevelConfig
 
 @Entity(tableName = "users")
 data class UserEntity(
@@ -22,5 +22,5 @@ data class UserEntity(
     val coinsMultiplierExpiry: Long = 0L
 ){
     val isMaxLevel: Boolean
-        get() = level >= StatusViewModel.MAX_LEVEL
+        get() = level >= LevelConfig.MAX_LEVEL
 }
