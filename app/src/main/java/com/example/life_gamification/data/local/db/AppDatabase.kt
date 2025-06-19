@@ -18,7 +18,7 @@ import com.example.life_gamification.data.local.entity.UserTaskEntity
 
 @Database(
     entities = [UserEntity::class, UserStatEntity::class, UserDailyQuestsEntity::class, UserInventoryItemEntity::class, UserTaskEntity::class],
-    version = 21
+    version = 25
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao

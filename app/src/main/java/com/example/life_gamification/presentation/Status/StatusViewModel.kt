@@ -41,8 +41,6 @@ class StatusViewModel(
     val completedDailiesToday: List<Int> get() = _completedDailiesToday
 
 
-
-
     //состояние - сколько осталось очков распределения
     private val _statPoints = mutableStateOf(0)
     val statPoints: State<Int> get() = _statPoints
@@ -174,18 +172,6 @@ class StatusViewModel(
         }
     }
 
-    fun addCoins(baseCoins: Int) {
-        viewModelScope.launch {
-            val multiplier = getCurrentCoinsMultiplier()
-            val coinsToAdd = (baseCoins * multiplier).toInt()
-            _user.value?.let { user ->
-                val updatedUser = user.copy(money = user.money + coinsToAdd)
-                userRepository.updateUser(updatedUser)
-                _user.value = updatedUser
-            }
-        }
-    }
-
     //метод для работы с датой (для повторного появления выполненных ежедневок)
     private fun isToday(dateMillis: Long): Boolean {
         val cal1 = java.util.Calendar.getInstance()
@@ -257,7 +243,7 @@ class StatusViewModel(
     }
 
     //методы для повышения уровня
-    private suspend fun checkLevelUp(user: UserEntity): UserEntity {
+    private fun checkLevelUp(user: UserEntity): UserEntity {
         var currentLevel = user.level
         var currentExp = user.experience
 

@@ -79,7 +79,7 @@ abstract class BaseTaskViewModel(
         }
     }
 
-    protected suspend fun getCurrentExpMultiplier(): Double {
+    protected fun getCurrentExpMultiplier(): Double {
         val user = _user.value ?: return 1.0
         return if (user.expMultiplierExpiry > System.currentTimeMillis()) {
             user.expMultiplier
@@ -88,7 +88,7 @@ abstract class BaseTaskViewModel(
         }
     }
 
-    protected suspend fun getCurrentCoinsMultiplier(): Double {
+    protected fun getCurrentCoinsMultiplier(): Double {
         val user = _user.value ?: return 1.0
         return if (user.coinsMultiplierExpiry > System.currentTimeMillis()) {
             user.coinsMultiplier
