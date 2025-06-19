@@ -30,7 +30,8 @@ class StatusViewModel(
     //характеристики
     val stats: StateFlow<List<UserStatEntity>> =
         useCases.getCustomStat(userId)
-            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())//преобразуем Cold flow в HotFlow
+            //так как Room не умеет работать с StateFlow через Dao
     //ежедневки
     val daily: StateFlow<List<UserDailyQuestsEntity>> =
         useCases.getCustomDaily(userId)
