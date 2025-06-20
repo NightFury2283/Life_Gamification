@@ -53,8 +53,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import com.example.life_gamification.R
+import com.example.life_gamification.domain.Configs.LevelConfig
+import com.example.life_gamification.domain.Configs.StatusConfig.REQUIRED_STATS
+import com.example.life_gamification.domain.Configs.isMaxLevel
 import com.example.life_gamification.presentation.common.ConfirmDialog
 import com.example.life_gamification.presentation.common.formatToDateString
 import com.example.life_gamification.presentation.common.formatToString
@@ -64,7 +66,6 @@ import java.util.Date
 
 @Composable
 fun StatusScreen(
-    navController: NavController,
     userId: String,
     viewModel: StatusViewModel = viewModel(
         factory = StatusViewModelFactory(
@@ -114,17 +115,34 @@ fun StatusScreen(
         }
     )
 
-    //для уровня и прогресс бара
-    val levelUpEvent by viewModel.levelUpEvent.collectAsState()
-    val (currentExp, nextLevelExp) = viewModel.getLevelProgress()
-    val progress = if (nextLevelExp > 0) currentExp.toFloat() / nextLevelExp.toFloat() else 0f
+// Для уровня и прогресс бара
+    val currentLevel = viewModel.level.value
+    val currentExp = viewModel.experience.value
 
-
-    if (levelUpEvent) {
-        LaunchedEffect(Unit) {
-            viewModel.resetLevelUpEvent()
+    val (expForCurrentLevel, expForNextLevel) = remember(currentLevel) {
+        val current = LevelConfig.REQUIREMENTS.getOrElse(currentLevel) { 0 }
+        val next = if (currentLevel < LevelConfig.MAX_LEVEL) {
+            LevelConfig.REQUIREMENTS.getOrElse(currentLevel + 1) { 0 }
+        } else {
+            0
         }
+        current to next
     }
+
+    val nextLevelExp = if (currentLevel >= LevelConfig.MAX_LEVEL) {
+        100
+    } else {
+        maxOf(1, expForNextLevel - expForCurrentLevel)
+    }
+
+    val progress = if (isMaxLevel(currentLevel)) {
+        1f
+    } else {
+        val currentExpClamped = maxOf(0, currentExp - expForCurrentLevel)
+        currentExpClamped.toFloat() / nextLevelExp.toFloat()
+    }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -163,13 +181,13 @@ fun StatusScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Уровень: ${user?.level ?: "—"}",
+                                "Уровень: $currentLevel",
                                 color = Color.White,
                                 fontWeight = FontWeight.Bold,
                                 modifier = Modifier.weight(1f)
                             )
 
-                                if (user?.isMaxLevel == true) {
+                                if (currentLevel >= LevelConfig.MAX_LEVEL) {
                                     Text("MAX", color = Color.Yellow)
                                 }
 
@@ -177,7 +195,7 @@ fun StatusScreen(
 
                         //прогресс-бар уровня
                         LinearProgressIndicator(
-                            progress = { progress },
+                            progress = progress,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(8.dp)
@@ -187,7 +205,7 @@ fun StatusScreen(
                         )
 
                         Text(
-                            text = if (user?.isMaxLevel == true) {
+                            text = if (currentLevel >= LevelConfig.MAX_LEVEL) {
                                 "Максимальный уровень достигнут!"
                             } else {
                                 "Опыт: $currentExp/$nextLevelExp"
@@ -277,7 +295,7 @@ fun StatusScreen(
                                         Text("+", color = Color.White)
                                     }
                                 }
-                                val undeletableStats = listOf("Здоровье", "Сила", "Интеллект")
+                                val undeletableStats = REQUIRED_STATS
                                 if (stat.name !in undeletableStats) {
                                     IconButton(onClick = {
                                         deletionTarget = DeletionTarget.Stat(

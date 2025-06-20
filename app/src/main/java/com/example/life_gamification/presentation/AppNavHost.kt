@@ -185,7 +185,7 @@ fun MainScreen(
                     startDestination = BottomNavScreen.Status.route
                 ) {
                     composable(BottomNavScreen.Status.route) {
-                        StatusScreen(navController = innerNavController, userId = userId)
+                        StatusScreen(userId = userId)
                     }
                     composable(BottomNavScreen.Tasks.route) {
                         TasksScreen(userId = userId)

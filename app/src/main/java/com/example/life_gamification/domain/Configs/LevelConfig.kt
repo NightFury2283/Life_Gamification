@@ -1,5 +1,7 @@
 package com.example.life_gamification.domain.Configs
 
+import com.example.life_gamification.domain.Configs.LevelConfig.MAX_LEVEL
+
 object LevelConfig {
     val REQUIREMENTS = mapOf(
         1 to 0,
@@ -10,4 +12,8 @@ object LevelConfig {
     )
 
     const val MAX_LEVEL = 5
+}
+
+fun isMaxLevel(currentLevel: Int): Boolean {
+    return currentLevel >= MAX_LEVEL
 }

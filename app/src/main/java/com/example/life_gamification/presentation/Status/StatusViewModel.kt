@@ -14,7 +14,6 @@ import com.example.life_gamification.domain.Configs.StatusConfig
 import com.example.life_gamification.domain.repository.UserTasksRepository.UserTaskRepository
 import com.example.life_gamification.domain.usecase.StatusUseCases
 import com.example.life_gamification.presentation.Base.BaseTaskViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -47,15 +46,21 @@ class StatusViewModel(
     private val _statPoints = mutableStateOf(0)
     val statPoints: State<Int> get() = _statPoints
 
+    //параметры для отслеживания изменений опыта и уровня
+    private val _level = mutableStateOf(0)
+    val level: State<Int> get() = _level
 
-    //отслеживаем уровень игрока
-    private val _levelUpEvent = MutableStateFlow(false)
-    val levelUpEvent: StateFlow<Boolean> = _levelUpEvent
+    private val _experience = mutableStateOf(0)//чтобы сразу обновлять UI
+    val experience: State<Int> get() = _experience
+
 
     init {
         viewModelScope.launch {
             loadTasks()
             _user.value = userRepository.getUserById(userId)?.let { user ->
+                _level.value = user.level
+                _experience.value = user.experience
+
                 val now = System.currentTimeMillis()
                 val needsReset = (user.expMultiplierExpiry < now && user.expMultiplier != 1.0) ||
                         (user.coinsMultiplierExpiry < now && user.coinsMultiplier != 1.0)
@@ -85,7 +90,7 @@ class StatusViewModel(
                     _completedDailiesToday.add(daily.id)
                 }
             }
-
+            //проверка на основные характеристики
             val currentStats = useCases.getCustomStatList(userId)
             val existingNames = currentStats.map { it.name }
             val required = StatusConfig.REQUIRED_STATS
@@ -94,6 +99,7 @@ class StatusViewModel(
             if (missing.isNotEmpty()) {
                 missing.forEach { useCases.addCustomStat(userId, it, 0) }
             }
+
         }
     }
 
@@ -166,9 +172,10 @@ class StatusViewModel(
                 userRepository.updateUser(updatedUser)
                 _user.value = updatedUser
 
+
+                _experience.value = updatedUser.experience
                 if (updatedUser.level > user.level) {
-                    _levelUpEvent.value = true
-                    user.copy(level = updatedUser.level)
+                    _level.value = updatedUser.level
                 }
             }
         }
@@ -249,9 +256,6 @@ class StatusViewModel(
         } else {
             user
         }
-    }
-    fun resetLevelUpEvent() {
-        _levelUpEvent.value = false
     }
 
     //для прогресс бара
